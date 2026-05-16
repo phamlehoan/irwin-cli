@@ -1,0 +1,73 @@
+{
+  "id": "auth",
+  "version": "1.0.0",
+  "description": "Web login/logout with session (email + password)",
+  "requires": ["database", "session"],
+  "npm": {
+    "dependencies": {
+      "class-validator": "^0.15.1",
+      "class-transformer": "^0.5.1"
+    }
+  },
+  "files": {
+    "from": "files",
+    "overwrite": [
+      "app/controllers/application.controller.ts",
+      "configs/locales/en/common.json"
+    ]
+  },
+  "patches": [
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-imports",
+          "content": "import { action } from \"ts-rails\";\nimport { AuthRoute } from \"./auth.route\";\nimport { CurrentUserMiddleware } from \"@middlewares\";\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-draw",
+          "content": "    this.path(action(CurrentUserMiddleware));\n    // @irwin:after-current-user\n    this.path(\"/auth\", AuthRoute.draw());\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:load-concerns",
+          "content": "\n    await this.loadConcerns(\n      ApplicationController.prototype,\n      appCodePath(\"controllers\", \"concerns\"),\n    );"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@middlewares\": [\"./app/middlewares\"],\n      \"@middlewares/*\": [\"./app/middlewares/*\"],\n      \"@validators\": [\"./app/validators\"],\n      \"@validators/*\": [\"./app/validators/*\"],"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./auth.controller\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "English copy: configs/locales/en/common.json (default without i18n)",
+      "Optional: irwin add i18n — then merge vi keys and wire locale in configs/application.ts",
+      "Run: pnpm db:push && pnpm db:seed",
+      "Open: GET /auth — admin@example.com / password123"
+    ]
+  }
+}

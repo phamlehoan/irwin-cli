@@ -1,0 +1,14 @@
+extends ../../layouts/admin/layout
+
+block content
+  .admin-card
+    h1= targetUser.email
+    p
+      strong= t('admin.name')
+      |  #{targetUser.firstName} #{targetUser.lastName}
+    p
+      strong= t('admin.status')
+      |  #{targetUser.status}
+    p
+      a.admin-btn(href=`/admin/users/${targetUser.id}/edit`)= t('admin.edit')
+      a.admin-btn(href="/admin/users")= t('admin.back_to_users')

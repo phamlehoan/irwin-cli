@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../app/models/generated/prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(uuid()) @map("id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deleted   Boolean  @default(false) @map("deleted")
+
+  firstName String @map("first_name")
+  lastName  String @map("last_name")
+  email     String @unique @map("email")
+  status    String @default("ACTIVE") @map("status")
+
+  passwords Password[]
+
+  @@map("users")
+}
+
+model Password {
+  id        String   @id @default(uuid()) @map("id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deleted   Boolean  @default(false) @map("deleted")
+
+  password String @map("password")
+  userId   String @map("user_id")
+  type     String @default("PASSWORD") @map("type")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("passwords")
+}

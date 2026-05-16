@@ -1,0 +1,62 @@
+{
+  "id": "session",
+  "version": "1.0.0",
+  "description": "express-session + express-flash + bcrypt hasher",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "express-session": "^1.19.0",
+      "express-flash": "^0.0.2",
+      "bcrypt": "^5.1.1"
+    },
+    "devDependencies": {
+      "@types/express-session": "^1.18.2",
+      "@types/express-flash": "^0.0.5",
+      "@types/bcrypt": "^5.0.2"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
+          "content": "\nimport { initializeHash, initializeSession } from \"./initializers\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "import express from \"express\";",
+          "content": "\nimport flash from \"express-flash\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initializeHash();"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:setup-app-middlewares",
+          "content": "\n    const sessionMiddleware = initializeSession();\n    this.app.use((req, res, next) => {\n      const isStateless =\n        req.path.startsWith(\"/api\") || req.path.startsWith(\"/docs\");\n      if (isStateless) return next();\n      sessionMiddleware(req, res, (err) => {\n        if (err) return next(err);\n        flash()(req, res, next);\n      });\n    });"
+        }
+      ]
+    },
+    {
+      "file": "configs/initializers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./session\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Set SESSION_SECRET in .env"
+    ]
+  }
+}

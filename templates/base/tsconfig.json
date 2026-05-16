@@ -23,7 +23,8 @@
       "@env": ["./configs/env"],
       "@enum": ["./configs/enum"],
       "@routes": ["./configs/routes"],
-      "@routes/*": ["./configs/routes/*"]
+      "@routes/*": ["./configs/routes/*"],
+      // @irwin:tsconfig-paths
     }
   },
   "include": ["**/*.ts"],

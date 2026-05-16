@@ -33,8 +33,8 @@ node irwin-cli/dist/cli.js new my-app -pm npm --skip-dev
 - After scaffold: verifies PM is on PATH → `install` → `dev` (blocks until Ctrl+C)
 - `--skip-install` — scaffold only; print manual steps
 - `--skip-dev` — install dependencies but do not start the server
-- `--skip-db` — remove Prisma files
 - `--api-only` — JSON home route, no Pug views
+- No database in `new` — run `irwin add database` when you need Prisma
 - `--ts-rails-version` — semver when publishing (monorepo template uses `file:../irwin-rails`)
 
 ### `irwin add` options
@@ -47,7 +47,20 @@ node irwin-cli/dist/cli.js new my-app -pm npm --skip-dev
 | Feature | Status |
 |---------|--------|
 | `api` | `/api/health` + readiness helper |
-| `auth`, `admin`, … | Planned — extract from `irwin-framework` |
+| `database` | Prisma SQLite + User/Password + seed |
+| `session` | express-session + flash + bcrypt |
+| `i18n` | Optional en/vi (i18next); without it, English from `configs/locales/en/*.json` |
+| `auth` | Login/logout (`requires`: database, session) |
+| `admin` | Dashboard + user CRUD (`requires`: auth; no RBAC yet) |
+
+```bash
+pnpm exec irwin add database
+pnpm exec irwin add session
+pnpm exec irwin add auth
+pnpm exec irwin add admin
+pnpm exec irwin add i18n   # optional — vi + locale switch
+pnpm db:push && pnpm db:seed
+```
 
 ## Project markers
 

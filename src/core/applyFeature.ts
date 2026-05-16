@@ -10,6 +10,7 @@ import {
   writeRegistry,
   type FeatureEntry,
 } from "./registry";
+import { copyLocalesFromEnabledFeatures } from "./localeSync";
 import { mergePackageJsonDeps } from "./template";
 
 export type ApplyFeatureOptions = {
@@ -41,8 +42,10 @@ function copyFeatureFiles(
   projectRoot: string,
   dryRun: boolean,
   force: boolean,
+  overwrite: string[] = [],
 ): string[] {
   const copied: string[] = [];
+  const overwriteSet = new Set(overwrite.map((p) => p.replace(/\\/g, "/")));
 
   const walk = (dir: string, base: string) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -53,9 +56,13 @@ function copyFeatureFiles(
         if (!dryRun) fs.mkdirSync(destPath, { recursive: true });
         walk(srcPath, rel);
       } else {
-        if (fs.existsSync(destPath) && !force) {
+        const shouldOverwrite = force || overwriteSet.has(rel);
+        if (fs.existsSync(destPath) && !shouldOverwrite) {
           log.warn(`Skip existing: ${rel}`);
           continue;
+        }
+        if (fs.existsSync(destPath) && shouldOverwrite && !force) {
+          log.info(`  overwrite  ${rel}`);
         }
         if (dryRun) {
           log.info(`  would create  ${rel}`);
@@ -94,7 +101,26 @@ export function applyFeature(
   const copied: string[] = [];
 
   if (fs.existsSync(filesSrc)) {
-    copied.push(...copyFeatureFiles(filesSrc, projectRoot, dryRun, force));
+    copied.push(
+      ...copyFeatureFiles(
+        filesSrc,
+        projectRoot,
+        dryRun,
+        force,
+        manifest.files?.overwrite ?? [],
+      ),
+    );
+  }
+
+  if (manifest.syncLocalesFromEnabledFeatures) {
+    copied.push(
+      ...copyLocalesFromEnabledFeatures(
+        projectRoot,
+        registry,
+        dryRun,
+        force,
+      ),
+    );
   }
 
   const patchResults =

@@ -1,0 +1,31 @@
+{
+  "admin": {
+    "dashboard": "Bảng điều khiển",
+    "users": "Người dùng",
+    "new_user": "Thêm người dùng",
+    "edit_user": "Sửa người dùng",
+    "search_placeholder": "Tìm theo tên hoặc email",
+    "all_status": "Tất cả trạng thái",
+    "email": "Email",
+    "name": "Họ tên",
+    "status": "Trạng thái",
+    "actions": "Thao tác",
+    "view": "Xem",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "delete_confirm": "Xóa người dùng này?",
+    "email_taken": "Email này đã được sử dụng",
+    "user_created": "Đã tạo người dùng",
+    "user_updated": "Đã cập nhật",
+    "user_deleted": "Đã xóa",
+    "password": "Mật khẩu",
+    "password_optional": "Mật khẩu mới (tuỳ chọn)",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "back_to_users": "Quay lại danh sách"
+  },
+  "sidebar": {
+    "dashboard": "Tổng quan",
+    "users": "Người dùng"
+  }
+}

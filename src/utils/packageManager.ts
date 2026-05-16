@@ -1,4 +1,6 @@
 import { spawn } from "child_process";
+import fs from "fs";
+import path from "path";
 
 export type PackageManager = "pnpm" | "npm" | "yarn";
 
@@ -30,6 +32,27 @@ export function installCommand(pm: PackageManager): { cmd: string; args: string[
       return { cmd: "pnpm", args: ["install"] };
     case "yarn":
       return { cmd: "yarn", args: [] };
+  }
+}
+
+export function detectPackageManager(projectRoot: string): PackageManager {
+  if (fs.existsSync(path.join(projectRoot, "pnpm-lock.yaml"))) return "pnpm";
+  if (fs.existsSync(path.join(projectRoot, "yarn.lock"))) return "yarn";
+  if (fs.existsSync(path.join(projectRoot, "package-lock.json"))) return "npm";
+  return defaultPackageManager();
+}
+
+export function runScriptCommand(
+  pm: PackageManager,
+  script: string,
+): { cmd: string; args: string[] } {
+  switch (pm) {
+    case "npm":
+      return { cmd: "npm", args: ["run", script] };
+    case "pnpm":
+      return { cmd: "pnpm", args: ["run", script] };
+    case "yarn":
+      return { cmd: "yarn", args: ["run", script] };
   }
 }
 

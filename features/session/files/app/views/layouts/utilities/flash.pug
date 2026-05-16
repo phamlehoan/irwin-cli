@@ -1,0 +1,10 @@
+if messages
+  if messages.errors
+    each error in messages.errors
+      .flash.flash--error= error.msg
+  if messages.info
+    each info in messages.info
+      .flash.flash--info= info.msg
+  if messages.success
+    each success in messages.success
+      .flash.flash--success= success.msg

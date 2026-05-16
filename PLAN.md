@@ -471,25 +471,29 @@ Sau mỗi extract: `irwin new tmp && irwin add <id> && diff` so với subset fra
 
 ### Phase 0 — Khởi tạo repo (1–2 ngày)
 
-- [ ] Scaffold package `irwin-cli` (TypeScript, commander, tsc, bin `irwin`)
-- [ ] `resolveIrwinRoot`, `.irwin/features.json` read/write
+- [x] Scaffold package `irwin-cli` (TypeScript, commander, tsc, bin `irwin`)
+- [x] `resolveIrwinRoot`, `.irwin/features.json` read/write
 - [ ] CI: build + unit test patch engine
 
-### Phase 1 — MVP (1–2 tuần)
+### Phase 1 — MVP (1–2 tuần) ✅
 
-- [ ] `irwin new` + template `base` (đúng §2.3 — không socket/jobs/mailer)
-- [ ] `irwin g` wrapper → local ts-rails
-- [ ] Manifest loader + copy files
-- [ ] Patch engine (insertAfter marker)
-- [ ] `irwin add auth` (extract từ framework)
-- [ ] `irwin add admin` (requires auth)
-- [ ] Docs: README quickstart
+- [x] `irwin new` + template `base` (đúng §2.3 — không socket/jobs/mailer)
+- [x] `irwin g` wrapper → local ts-rails
+- [x] Manifest loader + copy files
+- [x] Patch engine (insertAfter marker)
+- [x] `irwin add auth` (extract từ framework)
+- [x] `irwin add admin` (MVP: dashboard + users; requires auth)
+- [x] Feature packs: `api`, `database`, `session`, `i18n` (optional)
+- [x] `irwin add` post-install: install deps + `db:generate` / `db:push`
+- [x] Docs: README quickstart
 
 ### Phase 2 — Ổn định (2–3 tuần)
 
-- [ ] `irwin doctor`, `irwin list`
-- [ ] `--dry-run` cho add
-- [ ] `irwin add api`, `i18n`, `notifications`, `mailer`
+- [ ] `irwin doctor`
+- [x] `irwin list`
+- [x] `--dry-run` cho add
+- [x] `irwin add api`, `i18n`
+- [ ] `irwin add notifications`, `mailer`
 - [ ] Pin / lock ts-rails version + compatibility warning
 - [ ] E2E test: new → add auth → add admin → g scaffold
 
@@ -567,4 +571,4 @@ pnpm exec irwin g test app/controllers/products.controller.ts
 
 ---
 
-*Cập nhật: 2026-05-16 — thêm §2 inventory feature + `irwin new` Rails-like; chưa implement.*
+*Cập nhật: 2026-05-17 — Phase 1 MVP done (new, add packs, admin MVP, post-install). Phase 2: doctor, CI/E2E, notifications/mailer.*

@@ -1,0 +1,23 @@
+doctype html
+html(lang=locale || 'en')
+  head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title= title
+    link(rel="stylesheet", href="/stylesheets/admin/style.css")
+  body.admin-body
+    .admin-shell
+      aside.admin-sidebar
+        .admin-brand Admin
+        a(href="/admin" class=activeMenu === 'home' ? 'active' : '')= t('sidebar.dashboard')
+        a(href="/admin/users" class=activeMenu === 'users' ? 'active' : '')= t('sidebar.users')
+        a(href="/") Home
+        form(method="post" action="/auth/logout" style="margin-top:1rem;padding:0 1.25rem")
+          button.admin-btn(type="submit") Logout
+      .admin-main
+        header.admin-header
+          span= currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : ''
+          span= currentUser ? currentUser.email : ''
+        include ../utilities/flash
+        .admin-content
+          block content

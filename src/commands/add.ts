@@ -1,11 +1,13 @@
 import { applyFeature } from "../core/applyFeature";
 import { loadManifest } from "../core/manifest";
+import { runFeaturePostInstall } from "../core/postInstall";
 import { resolveIrwinRoot } from "../core/projectRoot";
 import { log } from "../utils/logger";
 
 export type AddOptions = {
   dryRun?: boolean;
   force?: boolean;
+  skipInstall?: boolean;
 };
 
 export async function runAdd(
@@ -31,14 +33,24 @@ export async function runAdd(
     return;
   }
 
+  const hadChanges =
+    result.copied.length > 0 ||
+    result.patchResults.some((p) => p.applied > 0);
+
+  if (hadChanges) {
+    await runFeaturePostInstall(projectRoot, manifest, {
+      skipInstall: options.skipInstall,
+    });
+  }
+
   if (manifest.postInstall?.messages?.length) {
-    console.log("\nPost-install:");
+    console.log("\nNext steps:");
     for (const msg of manifest.postInstall.messages) {
       console.log(`  • ${msg}`);
     }
   }
 
-  if (result.copied.length === 0 && result.patchResults.every((p) => p.applied === 0)) {
+  if (!hadChanges) {
     log.warn("Nothing changed.");
   } else {
     log.success(`Feature "${featureId}" enabled.`);

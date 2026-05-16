@@ -1,0 +1,31 @@
+{
+  "admin": {
+    "dashboard": "Admin dashboard",
+    "users": "Users",
+    "new_user": "New user",
+    "edit_user": "Edit user",
+    "search_placeholder": "Search by name or email",
+    "all_status": "All statuses",
+    "email": "Email",
+    "name": "Name",
+    "status": "Status",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "delete_confirm": "Delete this user?",
+    "email_taken": "This email is already in use",
+    "user_created": "User created",
+    "user_updated": "User updated",
+    "user_deleted": "User deleted",
+    "password": "Password",
+    "password_optional": "New password (optional)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back_to_users": "Back to users"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "users": "Users"
+  }
+}

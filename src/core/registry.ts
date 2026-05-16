@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { PackageManager } from "../utils/packageManager";
 
 export type FeatureEntry = {
   id: string;
@@ -10,6 +11,7 @@ export type FeatureEntry = {
 export type IrwinRegistry = {
   irwinCliVersion: string;
   tsRails: string;
+  packageManager?: PackageManager;
   features: FeatureEntry[];
 };
 

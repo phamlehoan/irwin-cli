@@ -1,9 +1,11 @@
-import { appPath } from "@lib/utils/path";
+import { ApplicationController } from "@controllers/application.controller";
+import { appCodePath, appPath } from "@lib/utils/path";
 import express from "express";
 import { MiddlewareFactory, RailsApplication, setSwaggerDocument } from "ts-rails";
 import env from "./env";
 import { initializeCache, initializeLogger } from "./initializers";
 import {
+  englishLocaleMiddleware,
   rateLimitMiddleware,
   requestIdMiddleware,
   requestLoggingMiddleware,
@@ -33,6 +35,14 @@ export class Application extends RailsApplication {
     // @irwin:initializers
   }
 
+  protected setupAppMiddlewares() {
+    // @irwin:setup-app-middlewares
+  }
+
+  protected async setupServices() {
+    // @irwin:setup-services
+  }
+
   protected setupViewEngine() {
     this.app.set("views", appPath("views"));
     this.app.set("view engine", "pug");
@@ -48,8 +58,13 @@ export class Application extends RailsApplication {
 
   public async initialize() {
     this.runInitializers();
+    await this.setupServices();
     this.setupViewEngine();
+    this.setupAppMiddlewares();
+    this.app.use(englishLocaleMiddleware);
+    // @irwin:locale-middleware
     this.setupStaticFiles();
+    // @irwin:load-concerns
     this.bootstrap();
   }
 

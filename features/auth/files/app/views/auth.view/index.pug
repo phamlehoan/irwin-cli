@@ -1,0 +1,13 @@
+extends ../layouts/auth/layout
+
+block content
+  .auth-card
+    h1= t('auth.welcome_back')
+    form.auth-form(method="POST", action="/auth/login")
+      label
+        span= t('auth.enter_email')
+        input(type="email", name="email", required, autocomplete="username")
+      label
+        span= t('auth.password')
+        input(type="password", name="password", required, autocomplete="current-password")
+      button(type="submit")= t('auth.login')

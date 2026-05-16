@@ -1,0 +1,15 @@
+{
+  "back_to_home": "Back to home",
+  "flash": {
+    "login_success": "Signed in successfully",
+    "user_not_found": "Invalid email or password",
+    "logged_out": "Signed out",
+    "login_first": "Please sign in first"
+  },
+  "auth": {
+    "welcome_back": "Welcome back",
+    "enter_email": "Email address",
+    "password": "Password",
+    "login": "Sign in"
+  }
+}

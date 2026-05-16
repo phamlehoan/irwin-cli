@@ -1,0 +1,21 @@
+extends ../../layouts/admin/layout
+
+block content
+  .admin-card
+    h1= t('admin.edit_user')
+    form.admin-form(method="post" action=`/admin/users/${targetUser.id}?_method=PUT`)
+      label First name
+      input(name="firstName" value=targetUser.firstName required)
+      label Last name
+      input(name="lastName" value=targetUser.lastName required)
+      label= t('admin.email')
+      input(name="email" type="email" value=targetUser.email required)
+      label= t('admin.status')
+      select(name="status")
+        option(value="ACTIVE" selected=targetUser.status==='ACTIVE') ACTIVE
+        option(value="INACTIVE" selected=targetUser.status==='INACTIVE') INACTIVE
+        option(value="PENDING" selected=targetUser.status==='PENDING') PENDING
+      label= t('admin.password_optional')
+      input(name="password" type="password" minlength="8")
+      button.admin-btn.admin-btn-primary(type="submit")= t('admin.save')
+      a.admin-btn(href=`/admin/users/${targetUser.id}`)= t('admin.cancel')

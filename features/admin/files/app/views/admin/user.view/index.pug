@@ -1,0 +1,38 @@
+extends ../../layouts/admin/layout
+
+block content
+  .admin-card
+    .admin-toolbar
+      form(method="get" action="/admin/users")
+        input(type="search" name="search" placeholder=t('admin.search_placeholder') value=search)
+        select(name="filterStatus" onchange="this.form.submit()")
+          option(value="")= t('admin.all_status')
+          option(value="ACTIVE" selected=filterStatus==='ACTIVE') ACTIVE
+          option(value="INACTIVE" selected=filterStatus==='INACTIVE') INACTIVE
+          option(value="PENDING" selected=filterStatus==='PENDING') PENDING
+        button.admin-btn(type="submit") Search
+      a.admin-btn.admin-btn-primary(href="/admin/users/new")= t('admin.new_user')
+
+    table.admin-table
+      thead
+        tr
+          th
+            a(href=buildSortUrl('email'))= t('admin.email')
+          th
+            a(href=buildSortUrl('firstName'))= t('admin.name')
+          th
+            a(href=buildSortUrl('status'))= t('admin.status')
+          th= t('admin.actions')
+      tbody
+        each u in users
+          tr
+            td
+              a(href=`/admin/users/${u.id}`)= u.email
+            td= `${u.firstName} ${u.lastName}`
+            td= u.status
+            td
+              a.admin-btn(href=`/admin/users/${u.id}/edit`)= t('admin.edit')
+              form(method="post" action=`/admin/users/${u.id}?_method=DELETE` style="display:inline" onsubmit=`return confirm("${t('admin.delete_confirm')}")`)
+                button.admin-btn.admin-btn-danger(type="submit")= t('admin.delete')
+
+    p Page #{page} — #{total} total

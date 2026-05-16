@@ -16,7 +16,6 @@ export type NewOptions = {
   tsRailsVersion?: string;
   skipInstall?: boolean;
   skipDev?: boolean;
-  skipDb?: boolean;
   apiOnly?: boolean;
   cwd?: string;
 };
@@ -65,7 +64,6 @@ export async function runNew(
       .join(" "),
     tsRailsVersion,
     irwinCliVersion: cliPkg.version ?? "0.1.0",
-    skipDb: options.skipDb ? "true" : "false",
     apiOnly: options.apiOnly ? "true" : "false",
     packageManager: pm,
   };
@@ -73,13 +71,6 @@ export async function runNew(
   const templateDir = path.join(cliRoot, "templates", "base");
   log.info(`Creating ${appName} at ${targetDir}...`);
   copyTemplate(templateDir, targetDir, vars);
-
-  if (options.skipDb) {
-    const prismaDir = path.join(targetDir, "configs", "db");
-    if (fs.existsSync(prismaDir)) {
-      fs.rmSync(prismaDir, { recursive: true, force: true });
-    }
-  }
 
   if (options.apiOnly) {
     const viewsDir = path.join(targetDir, "app", "views");
@@ -117,6 +108,9 @@ Next steps:
   cd ${appName}
   ${pm} install
   ${pm} dev
+
+  pnpm exec irwin add database   # optional: Prisma SQLite
+  pnpm exec irwin add api
 `);
     return;
   }

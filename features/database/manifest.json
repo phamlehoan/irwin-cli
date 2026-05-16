@@ -1,0 +1,62 @@
+{
+  "id": "database",
+  "version": "1.0.0",
+  "description": "Prisma SQLite + User/Password models and seed",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "@prisma/client": "^7.7.0",
+      "prisma": "^7.7.0",
+      "@prisma/adapter-better-sqlite3": "^7.7.0",
+      "better-sqlite3": "^12.8.0",
+      "bcrypt": "^5.1.1"
+    },
+    "devDependencies": {
+      "@types/better-sqlite3": "^7.6.13",
+      "@types/bcrypt": "^5.0.2",
+      "tsx": "^4.21.0"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "DATABASE_URL=file:./database/app.db\n"
+        }
+      ]
+    },
+    {
+      "file": "package.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"g\": \"irwin g\"",
+          "content": ",\n    \"db:generate\": \"prisma generate\",\n    \"db:push\": \"prisma db push\",\n    \"db:migrate\": \"prisma migrate dev\",\n    \"db:seed\": \"tsx configs/db/seed.ts\""
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@db\": [\"./app/models/generated/prisma/client\"],\n      \"@db/*\": [\"./app/models/generated/prisma/client/*\"],\n      \"@models\": [\"./app/models\"],\n      \"@models/*\": [\"./app/models/*\"],"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push"],
+    "messages": [
+      "Set DATABASE_URL in .env (default file:./database/app.db)",
+      "Run: pnpm db:seed to load seed data"
+    ]
+  }
+}

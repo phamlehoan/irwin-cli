@@ -1,0 +1,12 @@
+doctype html
+html(lang=locale || 'en')
+  head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title= title || t('auth.welcome_back')
+    link(rel="stylesheet", href="/stylesheets/authLayout/style.css")
+  body.auth-body
+    include ../utilities/flash
+    .auth-shell
+      a.auth-back(href=withLocale('/'))= t('back_to_home')
+      block content

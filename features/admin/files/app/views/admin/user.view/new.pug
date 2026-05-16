@@ -1,0 +1,16 @@
+extends ../../layouts/admin/layout
+
+block content
+  .admin-card
+    h1= t('admin.new_user')
+    form.admin-form(method="post" action="/admin/users")
+      label= t('admin.name') + ' (first)'
+      input(name="firstName" required)
+      label Last name
+      input(name="lastName" required)
+      label= t('admin.email')
+      input(name="email" type="email" required)
+      label= t('admin.password')
+      input(name="password" type="password" required minlength="8")
+      button.admin-btn.admin-btn-primary(type="submit")= t('admin.save')
+      a.admin-btn(href="/admin/users")= t('admin.cancel')

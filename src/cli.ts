@@ -40,7 +40,6 @@ program
   )
   .option("--skip-install", "Do not install dependencies")
   .option("--skip-dev", "Install only; do not start the dev server")
-  .option("--skip-db", "Omit Prisma / database files")
   .option("--api-only", "JSON responses only (no Pug views)")
   .action(async (appName, options) => {
     try {
@@ -50,7 +49,6 @@ program
         tsRailsVersion: options.tsRailsVersion,
         skipInstall: options.skipInstall,
         skipDev: options.skipDev,
-        skipDb: options.skipDb,
         apiOnly: options.apiOnly,
       });
     } catch (e) {
@@ -65,11 +63,13 @@ program
   .argument("<feature>", "Feature id (api, auth, admin, …)")
   .option("--dry-run", "Show what would change without writing")
   .option("--force", "Overwrite existing files")
+  .option("--skip-install", "Do not install npm deps or run post-install scripts")
   .action(async (feature, options) => {
     try {
       await runAdd(feature, {
         dryRun: options.dryRun,
         force: options.force,
+        skipInstall: options.skipInstall,
       });
     } catch (e) {
       log.error(e instanceof Error ? e.message : String(e));

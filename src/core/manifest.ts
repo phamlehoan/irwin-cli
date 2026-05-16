@@ -18,13 +18,21 @@ export type FeatureManifest = {
   };
   files?: {
     from?: string;
+    /** Paths (relative to project root) copied even when the file already exists. */
+    overwrite?: string[];
   };
+  /** i18n: copy configs/locales from other enabled feature packs (not from i18n/files). */
+  syncLocalesFromEnabledFeatures?: boolean;
   patches?: Array<{
     file: string;
     ops: PatchOp[];
   }>;
   postInstall?: {
     messages?: string[];
+    /** Run package manager install when manifest adds npm deps (default: true if deps present). */
+    install?: boolean;
+    /** package.json script names to run after install (e.g. db:generate). */
+    scripts?: string[];
   };
 };
 
