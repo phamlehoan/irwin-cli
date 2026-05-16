@@ -1,0 +1,11 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../app/models/generated/prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Add models with: pnpm exec irwin g model YourModel field:type

@@ -1,0 +1,42 @@
+{
+  "id": "api",
+  "version": "1.0.0",
+  "description": "JSON API layer with /api/health",
+  "requires": [],
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-imports",
+          "content": "import { ApiRoute } from \"./api\";\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-draw",
+          "content": "    this.path(\"/api\", ApiRoute.draw());\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/plugins/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:plugins-exports",
+          "content": "export * from \"./health\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "GET /api/health — readiness check",
+      "Add versioned routes under configs/routes/api/"
+    ]
+  }
+}

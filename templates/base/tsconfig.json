@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "CommonJS",
+    "moduleResolution": "node10",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "paths": {
+      "@configs": ["./configs"],
+      "@configs/*": ["./configs/*"],
+      "@controllers": ["./app/controllers"],
+      "@controllers/*": ["./app/controllers/*"],
+      "@lib": ["./lib"],
+      "@lib/*": ["./lib/*"],
+      "@application": ["./configs/application"],
+      "@env": ["./configs/env"],
+      "@enum": ["./configs/enum"],
+      "@routes": ["./configs/routes"],
+      "@routes/*": ["./configs/routes/*"]
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}

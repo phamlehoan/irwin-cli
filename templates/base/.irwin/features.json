@@ -1,0 +1,5 @@
+{
+  "irwinCliVersion": "{{irwinCliVersion}}",
+  "tsRails": "{{tsRailsVersion}}",
+  "features": []
+}

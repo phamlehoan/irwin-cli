@@ -1,0 +1,37 @@
+{
+  "name": "irwin-cli",
+  "version": "0.1.0",
+  "description": "Irwin project scaffolder and feature packs (irwin new, irwin add, irwin g)",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "bin": {
+    "irwin": "./dist/cli.js",
+    "create-irwin": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "features"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "npm run build && node --test dist/core/patchEngine.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "commander": "^9.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "irwin": {
+    "defaultTsRailsVersion": "1.1.0",
+    "minTsRailsVersion": "1.0.11"
+  }
+}
