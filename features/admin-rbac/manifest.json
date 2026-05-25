@@ -1,0 +1,171 @@
+{
+  "id": "admin-rbac",
+  "version": "1.2.0",
+  "description": "Feature-based RBAC (AM/USM/RAP) — route guards, seed, admin UI + Vue permission matrix",
+  "requires": ["admin", "database", "vue"],
+  "npm": {
+    "dependencies": {
+      "class-validator": "^0.15.1",
+      "class-transformer": "^0.5.1"
+    }
+  },
+  "files": {
+    "from": "files",
+    "overwrite": [
+      "app/middlewares/application.middleware.ts",
+      "app/middlewares/currentUser.middleware.ts",
+      "configs/routes/admin/index.ts",
+      "configs/routes/admin/adminUser.route.ts",
+      "configs/routes/admin/adminRole.route.ts",
+      "app/views/admin/user.view/index.pug",
+      "app/views/layouts/admin/layout.pug"
+    ]
+  },
+  "patches": [
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  passwords Password[]",
+          "content": "\n  roles       UserToRole[]\n  permissions UserToPermission[]"
+        },
+        {
+          "type": "append",
+          "content": "\nmodel Role {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @unique @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  isReadOnly  Boolean  @default(false) @map(\"is_read_only\")\n  users       UserToRole[]\n  permissions RoleToPermission[]\n  @@map(\"roles\")\n}\n\nmodel UserToRole {\n  userId    String   @map(\"user_id\")\n  roleId    String   @map(\"role_id\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)\n  @@id([userId, roleId])\n  @@map(\"user_to_role\")\n}\n\nmodel Feature {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  type        String   @default(\"FEATURE\") @map(\"type\")\n  parentId    String?  @map(\"parent_id\")\n  sortOrder   Int      @default(0) @map(\"sort_order\")\n  parent      Feature?  @relation(\"featureTree\", fields: [parentId], references: [id])\n  children    Feature[] @relation(\"featureTree\")\n  permissions Permission[]\n  @@map(\"features\")\n}\n\nmodel Permission {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  featureId   String   @map(\"feature_id\")\n  feature     Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)\n  users       UserToPermission[]\n  roles       RoleToPermission[]\n  @@map(\"permissions\")\n}\n\nmodel UserToPermission {\n  userId       String @map(\"user_id\")\n  permissionId String @map(\"permission_id\")\n  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)\n  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)\n  @@id([userId, permissionId])\n  @@map(\"user_to_permissions\")\n}\n\nmodel RoleToPermission {\n  roleId       String @map(\"role_id\")\n  permissionId String @map(\"permission_id\")\n  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)\n  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)\n  @@id([roleId, permissionId])\n  @@map(\"role_to_permissions\")\n}\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/enum/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "/** Flash categories",
+          "content": "export enum Feature {\n  AdministrationManagement = \"AM\",\n  UserManagement = \"USM\",\n  RoleAndPermission = \"RAP\",\n}\n\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:rails-route-permissions",
+          "content": "\nimport {\n  Permission,\n  ValidateAnyPermissionMiddleware,\n  ValidateUserPermissionMiddleware,\n} from \"@middlewares\";\n\nRailsRoute.permissionFactory = {\n  forUser: (permission: string) => {\n    const m = new ValidateUserPermissionMiddleware(permission);\n    return m.execute.bind(m);\n  },\n  forAny: (permissions: string[]) => {\n    const m = new ValidateAnyPermissionMiddleware(permissions);\n    return m.execute.bind(m);\n  },\n};\n\nRailsRoute.actionPermissionMap = {\n  read: Permission.Read,\n  create: Permission.Create,\n  update: Permission.Update,\n  delete: Permission.Delete,\n};\n"
+        }
+      ]
+    },
+    {
+      "file": "app/middlewares/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./enums/permissions\";\nexport * from \"./validatePermission.middleware\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./admin/adminRole.controller\";\nexport * from \"./admin/adminFeature.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/admin/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./adminRole.controller\";\nexport * from \"./adminFeature.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:lib-exports",
+          "content": "\nexport * from \"./utils/userPermissions\";\n"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@validators\": [\"./app/validators\"],\n      \"@validators/*\": [\"./app/validators/*\"],"
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/en/admin.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_users\": \"Back to users\"",
+          "content": ",\n    \"roles\": \"Roles\",\n    \"features\": \"Features\",\n    \"code\": \"Code\",\n    \"view\": \"View\",\n    \"no_roles\": \"No roles yet\",\n    \"no_features\": \"No features\",\n    \"back_to_roles\": \"Back to roles\",\n    \"back_to_features\": \"Back to features\",\n    \"new_role\": \"New role\",\n    \"edit_role\": \"Edit role\",\n    \"role_created\": \"Role created\",\n    \"role_updated\": \"Role updated\",\n    \"role_deleted\": \"Role deleted\",\n    \"role_code_taken\": \"Role code already exists\",\n    \"role_read_only\": \"This role cannot be changed\",\n    \"permissions\": \"Permissions\",\n    \"save_permissions\": \"Save permissions\",\n    \"permissions_updated\": \"Permissions updated\",\n    \"search\": \"Search\",\n    \"role_information\": \"Role information\",\n    \"assigned_users\": \"Assigned users\",\n    \"permission_information\": \"Permissions by feature\",\n    \"assign_user\": \"Assign user\",\n    \"assign_user_to\": \"Assign user to {{name}}\",\n    \"assign_selected\": \"Assign selected\",\n    \"select_one_user\": \"Select at least one user\",\n    \"users_assigned\": \"{{count}} user(s) assigned\",\n    \"user_unassigned\": \"User unassigned\",\n    \"no_users_assigned\": \"No users assigned\",\n    \"no_users_available\": \"No users available to assign\",\n    \"unassign\": \"Unassign\",\n    \"delete_role_confirm\": \"Delete this role?\",\n    \"users_count\": \"Users\",\n    \"apply_permissions\": \"Apply permissions\",\n    \"modules_list\": \"Modules\",\n    \"modules_list_hint\": \"Select a module, then tick permissions on the right\",\n    \"functions_components\": \"Functions & permissions\",\n    \"functions_components_hint\": \"Expand each feature to choose READ, CREATE, UPDATE, DELETE\",\n    \"perm_pick_menu_group\": \"Select a module on the left\",\n    \"perm_no_child_features\": \"No features under this module\",\n    \"role_perm_functions_intro\": \"Tick each permission this role should have\""
+        },
+        {
+          "type": "insertAfter",
+          "marker": "    \"users\": \"Users\"\n  }\n}",
+          "content": ",\n    \"roles\": \"Roles\",\n    \"features\": \"Features\",\n    \"admin_management\": \"Administration\",\n    \"back_home\": \"Back to site\""
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/en/common.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"login_first\": \"Please sign in first\"",
+          "content": ",\n    \"no_permission\": \"You do not have permission for this action\""
+        }
+      ]
+    },
+    {
+      "file": "package.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"db:seed\": \"tsx configs/db/seed.ts\"",
+          "content": ",\n    \"db:seed:rbac\": \"tsx configs/db/seed-rbac.ts\""
+        }
+      ]
+    },
+    {
+      "file": "app/assets/javascripts/main.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\nimport \"./admin/rbac\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/plugins/i18n.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "res.locals.locale = locale;",
+          "content": "\n  const messages = i18next.getResourceBundle(locale, \"common\") as\n    | Record<string, unknown>\n    | undefined;\n  res.locals.i18nMessages = messages || {};"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push", "db:seed:rbac", "build:client"],
+    "messages": [
+      "Requires: admin, database, vue (pnpm irwin add vue before admin-rbac)",
+      "Features: AM (menu), USM (users), RAP (roles/permissions)",
+      "Role detail: Vue permission matrix — run pnpm build:client after changes",
+      "Requires login user from auth/db:seed (admin@example.com). Run: pnpm run db:seed:rbac for ADMIN role"
+    ]
+  }
+}

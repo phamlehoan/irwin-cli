@@ -1,0 +1,55 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    header.admin-page__head
+      h1.admin-page__title= t('admin.roles')
+      .admin-page__actions
+        if rbacCan('RAP::CREATE')
+          a.admin-btn.admin-btn-primary(href="/admin/roles/new")= t('admin.new_role')
+
+    .admin-panel
+      .admin-panel__toolbar
+        form(method="get" action="/admin/roles")
+          input(type="hidden" name="sortBy" value=sortBy)
+          input(type="hidden" name="sortOrder" value=sortOrder)
+          input(type="hidden" name="perPage" value=perPage)
+          input(type="search" name="search" value=search placeholder=t('admin.search_placeholder'))
+          button.admin-btn.admin-btn-primary(type="submit")= t('admin.search')
+
+      if roles.length
+        .admin-table-wrap
+          table.admin-table
+            thead
+              tr
+                th
+                  a(href=buildSortUrl('code'))= t('admin.code')
+                th
+                  a(href=buildSortUrl('name'))= t('admin.name')
+                th= t('admin.users_count')
+                th= t('admin.permissions')
+                th.admin-table__actions= t('admin.actions')
+            tbody
+              each role in roles
+                tr
+                  td
+                    code= role.code
+                  td
+                    a.admin-table__link(href=`/admin/roles/${role.id}`)= role.name
+                  td= role._count.users
+                  td= role._count.permissions
+                  td.admin-table__actions
+                    a.admin-btn(href=`/admin/roles/${role.id}`)= t('admin.view')
+                    if rbacCan('RAP::UPDATE') && !role.isReadOnly
+                      a.admin-btn(href=`/admin/roles/${role.id}/edit`)= t('admin.edit')
+        if total > perPage
+          nav.admin-pagination
+            - const totalPages = Math.ceil(total / perPage)
+            if page > 1
+              a.admin-btn(href=`/admin/roles?page=${page - 1}${buildQueryString()}`) ←
+            span Page #{page} / #{totalPages} (#{total})
+            if page < totalPages
+              a.admin-btn(href=`/admin/roles?page=${page + 1}${buildQueryString()}`) →
+      else
+        p.admin-empty-hint(style="padding:1rem")= t('admin.no_roles')

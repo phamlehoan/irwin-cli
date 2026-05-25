@@ -1,0 +1,15 @@
+- const currentLocale = typeof locale !== 'undefined' ? locale : 'en'
+- const localeCode = currentLocale === 'vi' ? 'VI' : 'EN'
+details.site-locale-menu
+  summary.site-locale-menu__trigger(type="button" aria-label=t('header.language'))
+    svg.site-locale-menu__icon(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")
+      path(d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z")
+    span.site-locale-menu__code= localeCode
+  .site-locale-menu__panel(role="menu")
+    a.site-locale-menu__item(href=switchLocaleUrl('en') role="menuitem" lang="en" class=currentLocale === 'en' ? 'is-active' : '')
+      span.site-locale-menu__name= t('header.language_en')
+      span.site-locale-menu__badge EN
+    a.site-locale-menu__item(href=switchLocaleUrl('vi') role="menuitem" lang="vi" class=currentLocale === 'vi' ? 'is-active' : '')
+      span.site-locale-menu__name= t('header.language_vi')
+      span.site-locale-menu__badge VI

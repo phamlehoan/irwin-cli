@@ -1,15 +1,77 @@
 {
+  "header": {
+    "brand": "Irwin App",
+    "home": "Home",
+    "admin": "Admin",
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "register": "Register",
+    "profile": "My profile",
+    "change_password": "Change password",
+    "language": "Language",
+    "language_en": "English",
+    "language_vi": "Vietnamese"
+  },
+  "footer": {
+    "tagline": "Built with Irwin"
+  },
+  "home": {
+    "welcome": "Welcome",
+    "intro": "A minimal Rails-style TypeScript app. Add Irwin feature packs as you grow.",
+    "hint_cli": "Run in your project root:",
+    "features_title": "Feature packs",
+    "features_lead": "Installed packs are enabled in this app. Others can be added with the Irwin CLI.",
+    "features_summary": "{{installed}} of {{total}} installed",
+    "feature_installed": "Installed",
+    "feature_available": "Not installed",
+    "feature_requires": "Requires:",
+    "feature_requires_missing": "Install first: {{list}}",
+    "feature_version": "v{{version}}",
+    "feature_copy": "Copy",
+    "feature_copy_aria": "Copy command {{command}}",
+    "feature_copied": "Copied",
+    "feature_copy_failed": "Could not copy"
+  },
   "back_to_home": "Back to home",
   "flash": {
     "login_success": "Signed in successfully",
     "user_not_found": "Invalid email or password",
     "logged_out": "Signed out",
-    "login_first": "Please sign in first"
+    "login_first": "Please sign in first",
+    "password_mismatch": "Passwords do not match",
+    "password_changed": "Password updated",
+    "wrong_old_password": "Current password is incorrect",
+    "old_password_required": "Enter your current password",
+    "registration_email_exists": "An account with this email already exists",
+    "registration_success": "Account created. You can sign in now.",
+    "profile_updated": "Profile saved"
   },
   "auth": {
     "welcome_back": "Welcome back",
     "enter_email": "Email address",
     "password": "Password",
-    "login": "Sign in"
+    "login": "Sign in",
+    "no_account": "No account?",
+    "register_link": "Create one",
+    "have_account": "Already have an account?",
+    "change_password": "Change password",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm password",
+    "save_password": "Save password"
+  },
+  "users": {
+    "register_title": "Create your account",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "create_account": "Create account"
+  },
+  "profile": {
+    "title": "My profile",
+    "phone": "Phone",
+    "gender": "Gender",
+    "address": "Address",
+    "save": "Save profile",
+    "back_to_profile": "Back to profile"
   }
 }

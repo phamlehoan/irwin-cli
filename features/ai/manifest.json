@@ -1,0 +1,67 @@
+{
+  "id": "ai",
+  "version": "1.0.0",
+  "description": "Google Gemini chat API — POST /api/v1/ai/assistant/chat",
+  "requires": ["api"],
+  "npm": {
+    "dependencies": {
+      "@google/generative-ai": "^0.24.0"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:lib-exports",
+          "content": "\nexport * from \"./ai\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/api/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { checkReadiness } from \"@configs/plugins/health\";",
+          "content": "\nimport { ApiV1Route } from \"./v1\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "res.status(code).json(ApiResponse.ok(status));",
+          "content": "\n\n    this.path(\"/v1\", ApiV1Route.draw());"
+        }
+      ]
+    },
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  googleAiApiKey: process.env.GOOGLE_AI_API_KEY || \"\",\n  googleAiModelFallback: (process.env.GOOGLE_AI_MODEL_FALLBACK || \"\")\n    .split(\",\")\n    .map((s) => s.trim())\n    .filter(Boolean),\n"
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# AI (irwin add ai)\nGOOGLE_AI_API_KEY=\n# GOOGLE_AI_MODEL_FALLBACK=gemma-3-12b-it,gemma-3-4b-it\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Set GOOGLE_AI_API_KEY in .env (Google AI Studio)",
+      "POST /api/v1/ai/assistant/chat — body: { \"messages\": [{ \"role\": \"user\", \"content\": \"Hello\" }] }",
+      "Requires irwin add api first"
+    ]
+  }
+}

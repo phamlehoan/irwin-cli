@@ -1,0 +1,62 @@
+{
+  "id": "storage",
+  "version": "1.0.0",
+  "description": "Local image upload (multer + disk) — STORAGE_SERVICE=local",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "multer": "^2.1.1",
+      "jimp": "^1.6.0"
+    },
+    "devDependencies": {
+      "@types/multer": "^2.0.0"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  storageService: process.env.STORAGE_SERVICE || \"local\",\n"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:lib-exports",
+          "content": "\nexport * from \"./utils/storage\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  protected setupStaticFiles() {\n    this.app.use(express.static(appPath(\"assets\")));",
+          "content": "\n    this.app.use(\"/uploads\", express.static(rootPath(\"public\", \"uploads\")));"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "import { appCodePath, appPath } from \"@lib/utils/path\";",
+          "content": "\nimport { rootPath } from \"@lib/utils/path\";"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Use fileUploader from @lib in routes: fileUploader.single(\"file\")",
+      "Uploads served at /uploads/* from public/uploads/",
+      "Cloudinary/Supabase: extend from irwin-framework lib/utils/storage.ts"
+    ]
+  }
+}

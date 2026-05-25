@@ -1,0 +1,163 @@
+{
+
+  "id": "auth-oauth",
+
+  "version": "1.0.1",
+
+  "description": "Google OAuth web login (redirect flow)",
+
+  "requires": ["auth"],
+
+  "npm": {
+
+    "dependencies": {
+
+      "axios": "^1.13.2"
+
+    }
+
+  },
+
+  "files": {
+
+    "from": "files",
+
+    "overwrite": [
+
+      "app/controllers/auth.controller.ts",
+
+      "configs/routes/auth.route.ts",
+
+      "app/views/auth.view/index.pug",
+
+      "app/views/layouts/auth/layout.pug"
+
+    ]
+
+  },
+
+  "patches": [
+
+    {
+
+      "file": "configs/db/schema.prisma",
+
+      "ops": [
+
+        {
+
+          "type": "insertAfter",
+
+          "marker": "  avatarUrl   String? @map(\"avatar_url\")",
+
+          "content": "\n  googleId  String? @map(\"google_id\")"
+
+        }
+
+      ]
+
+    },
+
+    {
+
+      "file": "configs/locales/en/common.json",
+
+      "ops": [
+
+        {
+
+          "type": "insertAfter",
+
+          "marker": "\"login\": \"Sign in\",",
+
+          "content": "\n    \"login_with_google\": \"Continue with Google\",\n    \"or_continue_with\": \"or\",\n    \"google_not_configured\": \"Google sign-in is not configured. Set GOOGLE_CLIENT_ID in .env.\","
+
+        }
+
+      ]
+
+    },
+
+    {
+
+      "file": "configs/locales/vi/common.json",
+
+      "ops": [
+
+        {
+
+          "type": "insertAfter",
+
+          "marker": "\"login\": \"Đăng nhập\",",
+
+          "content": "\n    \"login_with_google\": \"Tiếp tục với Google\",\n    \"or_continue_with\": \"hoặc\",\n    \"google_not_configured\": \"Chưa cấu hình đăng nhập Google. Thêm GOOGLE_CLIENT_ID vào .env.\","
+
+        }
+
+      ]
+
+    },
+
+    {
+
+      "file": "configs/env/index.ts",
+
+      "ops": [
+
+        {
+
+          "type": "insertBefore",
+
+          "marker": "};",
+
+          "content": "  googleClientId: process.env.GOOGLE_CLIENT_ID || \"\",\n  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || \"\",\n  googleRedirectUri:\n    process.env.GOOGLE_REDIRECT_URI || \"http://localhost:8000/auth/google/callback\",\n"
+
+        }
+
+      ]
+
+    },
+
+    {
+
+      "file": "app/views/layouts/auth/layout.pug",
+
+      "ops": [
+
+        {
+
+          "type": "insertAfter",
+
+          "marker": "    link(rel=\"stylesheet\", href=\"/stylesheets/authLayout/style.css\")",
+
+          "content": "\n    link(rel=\"stylesheet\", href=\"/stylesheets/authLayout/oauth.css\")"
+
+        }
+
+      ]
+
+    }
+
+  ],
+
+  "postInstall": {
+
+    "install": true,
+
+    "scripts": ["db:generate", "db:push", "db:seed"],
+
+    "messages": [
+
+      "Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI to .env in THIS app (irwin add does not copy from other projects)",
+
+      "Google Cloud Console → OAuth redirect: http://localhost:8000/auth/google/callback",
+
+      "Login page: Continue with Google button at /auth"
+
+    ]
+
+  }
+
+}
+
+

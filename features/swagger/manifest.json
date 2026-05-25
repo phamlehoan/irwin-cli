@@ -1,0 +1,51 @@
+{
+  "id": "swagger",
+  "version": "1.0.0",
+  "description": "OpenAPI UI at /docs (development only)",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "swagger-ui-express": "^5.0.1"
+    },
+    "devDependencies": {
+      "@types/swagger-ui-express": "^4.1.8"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { Route } from \"./routes\";",
+          "content": "\nimport { setupSwagger as mountSwaggerDocs } from \"./plugins/swagger\";"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  protected mountRoutes()",
+          "content": "  protected setupSwagger() {\n    if (env.appEnv === \"development\") {\n      mountSwaggerDocs(this.app);\n    }\n  }\n\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/plugins/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:plugins-exports",
+          "content": "export * from \"./swagger\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Development: GET /docs — Swagger UI",
+      "Register routes with document: { ... } on ts-rails routes",
+      "With session pack: add /docs and /swagger.json to stateless paths if needed"
+    ]
+  }
+}

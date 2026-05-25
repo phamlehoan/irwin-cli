@@ -27,7 +27,7 @@
       // @irwin:tsconfig-paths
     }
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "typing-stubs"],
   "exclude": ["node_modules", "dist"],
   "ts-node": {
     "require": ["tsconfig-paths/register"]

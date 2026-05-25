@@ -1,0 +1,44 @@
+{
+  "id": "turso",
+  "version": "1.0.0",
+  "description": "Turso/libSQL Prisma adapter + db:deploy:turso migrations",
+  "requires": ["database"],
+  "npm": {
+    "dependencies": {
+      "@libsql/client": "^0.17.0",
+      "@prisma/adapter-libsql": "^7.7.0"
+    }
+  },
+  "files": {
+    "from": "files",
+    "overwrite": ["app/models/index.ts"]
+  },
+  "patches": [
+    {
+      "file": "package.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"db:seed\": \"tsx configs/db/seed.ts\"",
+          "content": ",\n    \"db:deploy:turso\": \"tsx configs/db/scripts/migrateTurso.ts\",\n    \"db:deploy:turso:dry\": \"tsx configs/db/scripts/migrateTurso.ts --dry-run\""
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# Turso (irwin add turso)\n# TURSO_DATABASE_URL=libsql://your-db.turso.io\n# TURSO_AUTH_TOKEN=\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Set TURSO_DATABASE_URL + TURSO_AUTH_TOKEN in .env",
+      "Apply SQL migrations: pnpm db:deploy:turso",
+      "Local SQLite still works when TURSO_* is unset"
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "id": "vue",
+  "version": "1.0.0",
+  "description": "Vite + Vue 3 islands (bundle.js)",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "vue": "^3.5.32"
+    },
+    "devDependencies": {
+      "@vitejs/plugin-vue": "^6.0.5",
+      "vite": "^7.3.2"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-imports",
+          "content": "import { VueRoute } from \"./vue.route\";\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-draw",
+          "content": "    this.path(\"/vue-demo\", VueRoute.draw());\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./vueDemo.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "package.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"build\": \"tsc && tsc-alias\"",
+          "content": ",\n    \"build:client\": \"vite build\""
+        }
+      ]
+    },
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  protected setupStaticFiles() {\n    this.app.use(express.static(appPath(\"assets\")));",
+          "content": "\n    this.app.use(\n      \"/assets/generated\",\n      express.static(appPath(\"assets\", \"generated\")),\n    );"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["build:client"],
+    "messages": [
+      "Built: app/assets/generated/bundle.js",
+      "In a pug layout: script(src='/assets/generated/bundle.js')",
+      "Mount point: div#helloVueApp (see HelloIsland.vue)",
+      "Run: pnpm build:client after changing Vue files"
+    ]
+  }
+}

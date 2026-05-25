@@ -473,7 +473,7 @@ Sau mỗi extract: `irwin new tmp && irwin add <id> && diff` so với subset fra
 
 - [x] Scaffold package `irwin-cli` (TypeScript, commander, tsc, bin `irwin`)
 - [x] `resolveIrwinRoot`, `.irwin/features.json` read/write
-- [ ] CI: build + unit test patch engine
+- [x] CI: build + unit test patch engine
 
 ### Phase 1 — MVP (1–2 tuần) ✅
 
@@ -489,20 +489,29 @@ Sau mỗi extract: `irwin new tmp && irwin add <id> && diff` so với subset fra
 
 ### Phase 2 — Ổn định (2–3 tuần)
 
-- [ ] `irwin doctor`
+- [x] `irwin doctor`
 - [x] `irwin list`
 - [x] `--dry-run` cho add
 - [x] `irwin add api`, `i18n`
-- [ ] `irwin add notifications`, `mailer`
-- [ ] Pin / lock ts-rails version + compatibility warning
-- [ ] E2E test: new → add auth → add admin → g scaffold
+- [x] `irwin add notifications`, `mailer`
+- [x] Pin / lock ts-rails version + compatibility warning (`irwin g` + `doctor`)
+- [x] E2E test: new → add database/session/auth → doctor → g scaffold (`npm run test:e2e`)
 
 ### Phase 3 — Mở rộng
 
-- [ ] `create-irwin` alias (`npm create irwin@latest`)
-- [ ] `irwin remove` (optional)
-- [ ] Plugin manifest từ npm package (`@irwin/feature-xyz`)
-- [ ] Tích hợp monorepo publish (changesets)
+- [x] `create-irwin` alias (`npm create irwin@latest`) — package `create-irwin/` + bin forward
+- [x] `irwin remove` (registry only; `--force` for dependents)
+- [x] Plugin manifest từ npm package (`@irwin/feature-xyz`) — see `docs/PLUGIN.md`
+- [x] Tích hợp monorepo publish (changesets) — root `.changeset/`, `pnpm changeset` at repo root
+
+### Phase 4 — Feature packs & DX (tiếp)
+
+- [x] `irwin add swagger` — `/docs` (development)
+- [x] `irwin add dev-tools` — `/dev` playground (development)
+- [x] `irwin upgrade` — bump `ts-rails` + registry
+- [x] `irwin add storage`, `jobs`, `socket`, `vue`
+- [x] `irwin add turso`, `netlify`, `serverless`
+- [x] `irwin add ai` (Gemini — `/api/v1/ai/assistant/chat`)
 
 ---
 
@@ -571,4 +580,4 @@ pnpm exec irwin g test app/controllers/products.controller.ts
 
 ---
 
-*Cập nhật: 2026-05-17 — Phase 1 MVP done (new, add packs, admin MVP, post-install). Phase 2: doctor, CI/E2E, notifications/mailer.*
+*Cập nhật: 2026-05-17 — Phase 1–3 done. Phase 4: swagger, dev-tools, storage, jobs, socket, vue, ai, turso, netlify, serverless, upgrade.*

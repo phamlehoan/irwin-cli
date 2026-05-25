@@ -6,5 +6,7 @@ export class AuthRoute extends RailsRoute {
     this.get("/", action(AuthController, "index"));
     this.post("/login", action(AuthController, "login"));
     this.post("/logout", action(AuthController, "destroy"));
+    this.get("/:email/edit", action(AuthController, "edit"));
+    this.post("/:email/password", action(AuthController, "updatePassword"));
   }
 }

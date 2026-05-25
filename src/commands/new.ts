@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getIrwinCliRoot } from "../core/packageRoot";
 import { copyTemplate, type TemplateVars } from "../core/template";
+import { syncHomeFeatures } from "../core/syncHomeFeatures";
 import { log } from "../utils/logger";
 import {
   assertPackageManagerInstalled,
@@ -71,6 +72,7 @@ export async function runNew(
   const templateDir = path.join(cliRoot, "templates", "base");
   log.info(`Creating ${appName} at ${targetDir}...`);
   copyTemplate(templateDir, targetDir, vars);
+  syncHomeFeatures(targetDir);
 
   if (options.apiOnly) {
     const viewsDir = path.join(targetDir, "app", "views");

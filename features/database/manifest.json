@@ -56,7 +56,8 @@
     "scripts": ["db:generate", "db:push"],
     "messages": [
       "Set DATABASE_URL in .env (default file:./database/app.db)",
-      "Run: pnpm db:seed to load seed data"
+      "Login user: run pnpm db:seed after irwin add auth (auth re-seeds after schema is final)",
+      "Optional now (API-only / no auth yet): pnpm db:seed"
     ]
   }
 }

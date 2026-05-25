@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { log } from "../utils/logger";
-import { getIrwinCliRoot } from "./packageRoot";
+import { featureFilesDir, resolveFeatureSource } from "./featureSource";
 import type { IrwinRegistry } from "./registry";
 
 /**
- * When enabling i18n, copy locale JSON from other enabled feature packs only
+ * When enabling auth/admin, copy locale JSON from other enabled feature packs
  * (e.g. admin → vi/admin.json). Skips packs that ship no configs/locales.
  */
 export function copyLocalesFromEnabledFeatures(
@@ -14,20 +14,22 @@ export function copyLocalesFromEnabledFeatures(
   dryRun: boolean,
   force: boolean,
 ): string[] {
-  const cliRoot = getIrwinCliRoot();
   const copied: string[] = [];
 
   for (const feat of registry.features) {
-    if (feat.id === "i18n") continue;
+    if (feat.id === "auth") continue;
 
-    const localesSrc = path.join(
-      cliRoot,
-      "features",
-      feat.id,
-      "files",
-      "configs",
-      "locales",
-    );
+    let localesSrc: string;
+    try {
+      const source = resolveFeatureSource(feat.id, projectRoot);
+      localesSrc = path.join(
+        featureFilesDir(source, "files"),
+        "configs",
+        "locales",
+      );
+    } catch {
+      continue;
+    }
     if (!fs.existsSync(localesSrc)) continue;
 
     const walk = (dir: string, relBase: string) => {

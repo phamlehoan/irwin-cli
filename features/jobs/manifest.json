@@ -1,0 +1,81 @@
+{
+  "id": "jobs",
+  "version": "1.0.0",
+  "description": "Background jobs: node-cron schedules + optional BullMQ (Redis)",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "bullmq": "^5.70.4",
+      "node-cron": "^4.2.1",
+      "ioredis": "^5.10.0"
+    },
+    "devDependencies": {
+      "@types/node-cron": "^3.0.11"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
+          "content": "\nimport { initializeJobs } from \"./initializers\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initializeJobs();"
+        }
+      ]
+    },
+    {
+      "file": "configs/initializers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./jobs\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  redisHost: process.env.REDIS_HOST || \"127.0.0.1\",\n  redisPort: parseInt(process.env.REDIS_PORT || \"6379\", 10),\n"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@jobs\": [\"./app/jobs\"],\n      \"@jobs/*\": [\"./app/jobs/*\"],"
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# Jobs (irwin add jobs)\nREDIS_HOST=127.0.0.1\nREDIS_PORT=6379\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Cron: jobs with static `cron` field auto-start (see app/jobs/heartbeat.job.ts)",
+      "BullMQ: start Redis, enqueue via RailsApplication.jobAdapter",
+      "Generate: pnpm exec irwin g job MyJob"
+    ]
+  }
+}

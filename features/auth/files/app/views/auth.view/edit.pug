@@ -1,0 +1,19 @@
+extends ../layouts/auth/layout
+
+block content
+  .auth-card
+    h1= t('auth.change_password')
+    form.auth-form(method="POST", action=`/auth/${encodeURIComponent(email)}/password`)
+      if needsOldPassword
+        label
+          span= t('auth.current_password')
+          input(type="password", name="oldPassword", autocomplete="current-password")
+      label
+        span= t('auth.new_password')
+        input(type="password", name="password", required, minlength="6", autocomplete="new-password")
+      label
+        span= t('auth.confirm_password')
+        input(type="password", name="passwordConfirmation", required, minlength="6", autocomplete="new-password")
+      button(type="submit")= t('auth.save_password')
+    p.auth-footer
+      a(href="/me")= t('profile.back_to_profile')

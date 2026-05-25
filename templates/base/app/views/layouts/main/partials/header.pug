@@ -1,0 +1,9 @@
+header.site-header
+  .site-header__inner
+    a.site-brand(href="/")= t('header.brand')
+    nav.site-nav(aria-label="Main")
+      a.site-nav__link(href="/")= t('header.home')
+      //- Auth UI is added by `irwin add auth` (login, avatar menu, register)
+      span.site-nav__hint(title="Run: irwin add auth")= t('header.auth_hint')
+      // @irwin:main-header-nav-auth
+      // @irwin:main-header-nav-admin

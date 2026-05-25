@@ -1,0 +1,27 @@
+extends ../layouts/main/layout
+
+block content
+  section.hero
+    h1= t('profile.title')
+    p= user.email
+  .profile-card
+    form.profile-form(method="POST", action="/me")
+      .profile-form__grid
+        label
+          span= t('users.first_name')
+          input(type="text", name="firstName", value=user.firstName, required)
+        label
+          span= t('users.last_name')
+          input(type="text", name="lastName", value=user.lastName, required)
+        label
+          span= t('profile.phone')
+          input(type="text", name="phoneNumber", value=user.phoneNumber || '')
+        label
+          span= t('profile.gender')
+          input(type="text", name="gender", value=user.gender || '')
+        label.profile-form__full
+          span= t('profile.address')
+          input(type="text", name="address", value=user.address || '')
+      .profile-form__actions
+        button.site-nav__link.site-nav__link--accent(type="submit")= t('profile.save')
+        a.site-nav__link(href="/")= t('back_to_home')

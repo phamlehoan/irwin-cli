@@ -1,0 +1,34 @@
+extends ../layouts/main/layout
+include _icons
+include _item
+
+block head
+  link(rel="stylesheet" href="/stylesheets/mainLayout/notifications.css")
+
+block content
+  - const filterVal = typeof filter === 'string' ? filter : 'all'
+  section.notif-page
+    header.notif-page__head
+      div
+        h1.notif-page__title= t('notifications.page_title')
+        if unreadCount > 0
+          p.notif-page__lead= t('notifications.unread_count', { count: unreadCount })
+        else
+          p.notif-page__lead= t('notifications.all_caught_up')
+      if unreadCount > 0
+        button.notif-page__mark-all(type="button" data-notif-mark-all)= t('notifications.mark_all_read')
+
+    nav.notif-page__tabs(aria-label=t('notifications.filter_label'))
+      a.notif-page__tab(class=filterVal !== 'unread' ? 'notif-page__tab--active' : '' href=withLocale('/notifications'))= t('notifications.tab_all')
+      a.notif-page__tab(class=filterVal === 'unread' ? 'notif-page__tab--active' : '' href=withLocale('/notifications?filter=unread'))= t('notifications.tab_unread')
+
+    if notifications.length === 0
+      .notif-empty
+        .notif-empty__icon
+          +iconBell()
+        h2= filterVal === 'unread' ? t('notifications.empty_unread_title') : t('notifications.empty_title')
+        p= filterVal === 'unread' ? t('notifications.empty_unread_hint') : t('notifications.empty_hint')
+    else
+      .notif-list#notif-page-list
+        each n in notifications
+          +notificationItem(n)

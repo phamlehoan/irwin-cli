@@ -1,0 +1,52 @@
+{
+  "id": "notifications-push",
+  "version": "1.0.0",
+  "description": "FCM push tokens + send helper (extends notifications)",
+  "requires": ["notifications"],
+  "npm": {
+    "dependencies": {
+      "firebase-admin": "^13.6.0"
+    }
+  },
+  "files": {
+    "from": "files",
+    "overwrite": [
+      "lib/notifications/notificationService.ts",
+      "lib/notifications/types.ts"
+    ]
+  },
+  "patches": [
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  notifications AppNotification[]",
+          "content": "\n  pushTokens UserPushToken[]"
+        },
+        {
+          "type": "append",
+          "content": "\nmodel UserPushToken {\n  id         String   @id @default(uuid()) @map(\"id\")\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n  updatedAt  DateTime @updatedAt @map(\"updated_at\")\n  userId     String   @map(\"user_id\")\n  token      String   @unique @map(\"token\")\n  platform   String   @map(\"platform\")\n  deviceId   String?  @map(\"device_id\")\n  isActive   Boolean  @default(true) @map(\"is_active\")\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n  @@index([userId, isActive])\n  @@map(\"user_push_tokens\")\n}\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  fcmProjectId: process.env.FCM_PROJECT_ID || \"\",\n  fcmClientEmail: process.env.FCM_CLIENT_EMAIL || \"\",\n  fcmPrivateKey: (process.env.FCM_PRIVATE_KEY || \"\").replace(/\\\\n/g, \"\\n\"),\n"
+        }
+      ]
+    },
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push"],
+    "messages": [
+      "Set FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY for push",
+      "Register token from mobile, then notifications.send({ push: true })"
+    ]
+  }
+}

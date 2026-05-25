@@ -1,0 +1,59 @@
+include _icons
+
+mixin featureCard(row)
+  article.feature-card(class=row.enabled ? 'feature-card--installed' : 'feature-card--available')
+    .feature-card__head
+      h3.feature-card__title= row.id
+      if row.enabled
+        span.feature-card__badge.feature-card__badge--ok
+          +iconInstalled()
+          = t('home.feature_installed')
+      else
+        span.feature-card__badge
+          +iconAvailable()
+          = t('home.feature_available')
+    p.feature-card__desc= row.description
+    if row.requires.length
+      p.feature-card__requires
+        +iconRequires()
+        span
+          span.feature-card__requires-label= t('home.feature_requires')
+          = ' '
+          code= row.requires.join(', ')
+    if row.enabled
+      p.feature-card__meta
+        span= t('home.feature_version', { version: row.version })
+    else if row.missingRequires.length
+      p.feature-card__warn
+        +iconRequires()
+        span= t('home.feature_requires_missing', { list: row.missingRequires.join(', ') })
+    else
+      .feature-card__install
+        .feature-card__cmd-row
+          code.feature-card__cmd= row.installCommand
+          button.feature-card__copy(
+            type="button"
+            data-copy=row.installCommand
+            data-copy-aria=t('home.feature_copy_aria', { command: row.installCommand })
+            aria-label=t('home.feature_copy_aria', { command: row.installCommand })
+            title=t('home.feature_copy')
+          )
+            span.visually-hidden= t('home.feature_copy')
+            span.feature-card__copy-icon.feature-card__copy-icon--copy
+              +iconCopy()
+            span.feature-card__copy-icon.feature-card__copy-icon--done
+              +iconCheck()
+
+if featureRows && featureRows.length
+  section.features-section(
+    data-copy-feedback=JSON.stringify({ copied: t('home.feature_copied'), failed: t('home.feature_copy_failed') })
+    aria-live="polite"
+  )
+    .features-section__head
+      h2.features-section__title= t('home.features_title')
+      p.features-section__lead= t('home.features_lead')
+      if featureSummary
+        p.features-section__summary= t('home.features_summary', featureSummary)
+    .feature-grid
+      each row in featureRows
+        +featureCard(row)

@@ -1,0 +1,23 @@
+service: irwin-app
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    NODE_ENV: production
+    TURSO_DATABASE_URL: ${env:TURSO_DATABASE_URL, ''}
+    TURSO_AUTH_TOKEN: ${env:TURSO_AUTH_TOKEN, ''}
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi: "*"
+
+plugins:
+  - serverless-offline
+
+package:
+  individually: true

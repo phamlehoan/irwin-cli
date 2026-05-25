@@ -1,0 +1,39 @@
+doctype html
+html(lang=locale || 'en')
+  head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title= title
+    link(rel="stylesheet", href="/stylesheets/mainLayout/style.css")
+    link(rel="stylesheet", href="/stylesheets/admin/style.css")
+    link(rel="stylesheet", href="/stylesheets/admin/rbac-ui.css")
+    block head
+  body.admin-body
+    .admin-layout#adminLayout
+      include partials/sidebar
+      button.admin-sidebar-backdrop(type="button" aria-label=t('sidebar.close_menu') tabindex="-1")
+      script.
+        (function () {
+          try {
+            var mobile = window.matchMedia("(max-width: 767px)").matches;
+            var el = document.getElementById("adminSidebar");
+            if (!mobile && el && localStorage.getItem("irwin.admin.sidebarCollapsed") === "1") {
+              el.classList.add("admin-sidebar--collapsed");
+              var shell = el.closest(".admin-sidebar-shell");
+              if (shell) shell.classList.add("admin-sidebar-shell--collapsed");
+            }
+          } catch (e) { /* ignore */ }
+        })();
+      .admin-column
+        include partials/topbar
+        .admin-main
+          include ../utilities/flash
+          .admin-content
+            block content
+    script(src="/javascripts/admin/sidebar.js" defer)
+    - const i18nBootstrap = JSON.stringify({ locale: locale || 'en', messages: i18nMessages || {} })
+    script(type="application/json" id="i18n-bootstrap")!= i18nBootstrap
+    script.
+      window.__I18N__ = JSON.parse(document.getElementById('i18n-bootstrap').textContent);
+    script(src="/assets/generated/bundle.js" defer)
+    block scripts

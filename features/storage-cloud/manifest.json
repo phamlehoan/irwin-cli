@@ -1,0 +1,35 @@
+{
+  "id": "storage-cloud",
+  "version": "1.0.0",
+  "description": "Cloudinary + Supabase storage adapters (STORAGE_SERVICE=cloudinary|supabase)",
+  "requires": ["storage"],
+  "npm": {
+    "dependencies": {
+      "cloudinary": "^2.9.0",
+      "@supabase/supabase-js": "^2.99.0"
+    }
+  },
+  "files": {
+    "from": "files",
+    "overwrite": ["lib/utils/storage.ts"]
+  },
+  "patches": [
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || \"\",\n  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || \"\",\n  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || \"\",\n  supabaseUrl: process.env.SUPABASE_URL || \"\",\n  supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || \"\",\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "messages": [
+      "STORAGE_SERVICE=cloudinary — set CLOUDINARY_* env vars",
+      "STORAGE_SERVICE=supabase — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+    ]
+  }
+}

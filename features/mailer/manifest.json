@@ -1,0 +1,80 @@
+{
+  "id": "mailer",
+  "version": "1.0.0",
+  "description": "Nodemailer adapters (test log + SMTP) and ApplicationMailer",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "nodemailer": "^6.10.1"
+    },
+    "devDependencies": {
+      "@types/nodemailer": "^6.4.23",
+      "@types/pug": "^2.0.10"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
+          "content": "\nimport { initializeMailer } from \"./initializers\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initializeMailer();"
+        }
+      ]
+    },
+    {
+      "file": "configs/initializers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./mailer\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  emailFrom: process.env.EMAIL_FROM || \"\",\n  mailService: process.env.MAIL_SERVICE || \"test\",\n  mailHost: process.env.MAIL_HOST || \"smtp.gmail.com\",\n  mailPort: parseInt(process.env.MAIL_PORT || \"587\", 10),\n  mailUser: process.env.MAIL_USER || \"\",\n  mailPass: process.env.MAIL_PASS || \"\",\n"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@mailers\": [\"./app/mailers\"],\n      \"@mailers/*\": [\"./app/mailers/*\"],"
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# Mail (irwin add mailer)\nMAIL_SERVICE=test\nEMAIL_FROM=noreply@example.com\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "MAIL_SERVICE=test logs emails to the console (no SMTP)",
+      "MAIL_SERVICE=smtp — set MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS",
+      "Use ApplicationMailer subclasses under app/mailers/"
+    ]
+  }
+}

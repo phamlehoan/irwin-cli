@@ -1,0 +1,77 @@
+{
+  "header": {
+    "brand": "Irwin App",
+    "home": "Trang chủ",
+    "admin": "Quản trị",
+    "sign_in": "Đăng nhập",
+    "sign_out": "Đăng xuất",
+    "register": "Đăng ký",
+    "profile": "Hồ sơ của tôi",
+    "change_password": "Đổi mật khẩu",
+    "language": "Ngôn ngữ",
+    "language_en": "English",
+    "language_vi": "Tiếng Việt"
+  },
+  "footer": {
+    "tagline": "Xây dựng với Irwin"
+  },
+  "home": {
+    "welcome": "Chào mừng",
+    "intro": "Ứng dụng TypeScript kiểu Rails tối giản. Thêm gói tính năng Irwin khi cần.",
+    "hint_cli": "Chạy tại thư mục dự án:",
+    "features_title": "Gói tính năng",
+    "features_lead": "Gói đã cài được bật trong app. Gói khác thêm bằng Irwin CLI.",
+    "features_summary": "Đã cài {{installed}}/{{total}}",
+    "feature_installed": "Đã cài",
+    "feature_available": "Chưa cài",
+    "feature_requires": "Cần:",
+    "feature_requires_missing": "Cài trước: {{list}}",
+    "feature_version": "v{{version}}",
+    "feature_copy": "Sao chép",
+    "feature_copy_aria": "Sao chép lệnh {{command}}",
+    "feature_copied": "Đã sao chép",
+    "feature_copy_failed": "Không sao chép được"
+  },
+  "back_to_home": "Về trang chủ",
+  "flash": {
+    "login_success": "Đăng nhập thành công",
+    "user_not_found": "Email hoặc mật khẩu không đúng",
+    "logged_out": "Đã đăng xuất",
+    "login_first": "Vui lòng đăng nhập trước",
+    "password_mismatch": "Mật khẩu không khớp",
+    "password_changed": "Đã cập nhật mật khẩu",
+    "wrong_old_password": "Mật khẩu hiện tại không đúng",
+    "old_password_required": "Nhập mật khẩu hiện tại",
+    "registration_email_exists": "Email này đã được sử dụng",
+    "registration_success": "Đã tạo tài khoản. Bạn có thể đăng nhập.",
+    "profile_updated": "Đã lưu hồ sơ"
+  },
+  "auth": {
+    "welcome_back": "Chào mừng trở lại",
+    "enter_email": "Địa chỉ email",
+    "password": "Mật khẩu",
+    "login": "Đăng nhập",
+    "no_account": "Chưa có tài khoản?",
+    "register_link": "Tạo tài khoản",
+    "have_account": "Đã có tài khoản?",
+    "change_password": "Đổi mật khẩu",
+    "current_password": "Mật khẩu hiện tại",
+    "new_password": "Mật khẩu mới",
+    "confirm_password": "Xác nhận mật khẩu",
+    "save_password": "Lưu mật khẩu"
+  },
+  "users": {
+    "register_title": "Tạo tài khoản",
+    "first_name": "Tên",
+    "last_name": "Họ",
+    "create_account": "Tạo tài khoản"
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "phone": "Số điện thoại",
+    "gender": "Giới tính",
+    "address": "Địa chỉ",
+    "save": "Lưu hồ sơ",
+    "back_to_profile": "Về hồ sơ"
+  }
+}

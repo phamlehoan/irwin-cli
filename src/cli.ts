@@ -4,10 +4,35 @@ import { Command } from "commander";
 import fs from "fs";
 import path from "path";
 import { runAdd } from "./commands/add";
+import { runDoctor } from "./commands/doctor";
 import { runGenerate } from "./commands/generate";
 import { runList } from "./commands/list";
 import { runNew } from "./commands/new";
+import { runRemove } from "./commands/remove";
+import { runUpgrade } from "./commands/upgrade";
 import { log } from "./utils/logger";
+
+const IRWIN_COMMANDS = new Set([
+  "new",
+  "add",
+  "g",
+  "generate",
+  "list",
+  "doctor",
+  "remove",
+  "upgrade",
+]);
+
+/** npm create irwin my-app → create-irwin bin → irwin new my-app */
+function normalizeCreateArgv(): void {
+  const bin = path.basename(process.argv[1] ?? "");
+  if (!bin.includes("create-irwin")) return;
+  const args = process.argv.slice(2);
+  if (args.length === 0) return;
+  const first = args[0];
+  if (first.startsWith("-") || IRWIN_COMMANDS.has(first)) return;
+  process.argv.splice(2, 0, "new");
+}
 import {
   defaultPackageManager,
   parsePackageManager,
@@ -103,4 +128,59 @@ program.command("list").description("List feature packs and enabled state").acti
   }
 });
 
+program
+  .command("doctor")
+  .description("Check Irwin project setup (deps, env, features, markers)")
+  .action(() => {
+    try {
+      runDoctor();
+    } catch (e) {
+      log.error(e instanceof Error ? e.message : String(e));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("remove")
+  .description(
+    "Disable a feature: revert patches, delete copied files, update registry",
+  )
+  .argument("<feature>", "Feature id to remove")
+  .option("--dry-run", "Show what would change")
+  .option("--force", "Remove even if other enabled features depend on it")
+  .option(
+    "--keep-files",
+    "Registry only — do not delete copied files or revert patches",
+  )
+  .action((feature, options) => {
+    try {
+      runRemove(feature, {
+        dryRun: options.dryRun,
+        force: options.force,
+        keepFiles: options.keepFiles,
+      });
+    } catch (e) {
+      log.error(e instanceof Error ? e.message : String(e));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("upgrade")
+  .description("Bump ts-rails version in package.json and .irwin/features.json")
+  .option("--version <semver>", "Target ts-rails version (default: irwin-cli pin)")
+  .option("--skip-install", "Only update package.json and registry")
+  .action(async (options) => {
+    try {
+      await runUpgrade({
+        version: options.version,
+        skipInstall: options.skipInstall,
+      });
+    } catch (e) {
+      log.error(e instanceof Error ? e.message : String(e));
+      process.exit(1);
+    }
+  });
+
+normalizeCreateArgv();
 program.parse();

@@ -1,0 +1,16 @@
+extends ../layouts/main/layout
+
+block content
+  h1= title
+  p Environment: #{appEnv}
+  p.small This route is only registered when APP_ENV is development.
+  h2 Quick links
+  ul
+    li
+      a(href="/") Home
+    li
+      a(href="/api/health") API health (if api pack enabled)
+    li
+      a(href="/docs") OpenAPI /docs (if swagger pack enabled)
+    li
+      a(href="/auth") Auth (if auth pack enabled)

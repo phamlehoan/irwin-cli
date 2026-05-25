@@ -1,0 +1,36 @@
+include icons
+
+- const userPermCodes = (currentUser && currentUser.permissions) || []
+- const usesRbac = Array.isArray(currentUser?.permissions)
+- const can = (code) => !usesRbac || userPermCodes.includes(code)
+
+.admin-sidebar-shell
+  aside.admin-sidebar#adminSidebar
+    .admin-sidebar__head
+      a.admin-sidebar__brand(href="/admin" title=t('sidebar.admin_panel'))
+        span.admin-sidebar__brand-icon(aria-hidden="true")
+          +iconDashboard()
+        span.admin-sidebar__brand-label= t('sidebar.admin_panel')
+
+    nav.admin-sidebar__nav(aria-label="Admin")
+      a.admin-sidebar__link(href="/admin" class=activeMenu === 'home' ? 'is-active' : '' title=t('sidebar.dashboard'))
+        span.admin-sidebar__icon(aria-hidden="true")
+          +iconDashboard()
+        span.admin-sidebar__label= t('sidebar.dashboard')
+
+      if can('USM::READ')
+        a.admin-sidebar__link(href="/admin/users" class=activeMenu === 'users' ? 'is-active' : '' title=t('sidebar.users'))
+          span.admin-sidebar__icon(aria-hidden="true")
+            +iconUsers()
+          span.admin-sidebar__label= t('sidebar.users')
+
+      if usesRbac && can('RAP::READ')
+        p.admin-sidebar__heading= t('sidebar.admin_management')
+        a.admin-sidebar__link(href="/admin/roles" class=activeMenu === 'roles' ? 'is-active' : '' title=t('sidebar.roles'))
+          span.admin-sidebar__icon(aria-hidden="true")
+            +iconRoles()
+          span.admin-sidebar__label= t('sidebar.roles')
+        a.admin-sidebar__link(href="/admin/features" class=activeMenu === 'features' ? 'is-active' : '' title=t('sidebar.features'))
+          span.admin-sidebar__icon(aria-hidden="true")
+            +iconFeatures()
+          span.admin-sidebar__label= t('sidebar.features')

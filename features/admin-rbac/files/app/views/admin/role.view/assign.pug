@@ -1,0 +1,50 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    nav.admin-breadcrumb(aria-label="breadcrumb")
+      a(href="/admin/roles")= t('admin.roles')
+      span.admin-breadcrumb__sep /
+      a(href=`/admin/roles/${role.id}`)= role.name
+      span.admin-breadcrumb__sep /
+      span= t('admin.assign_user')
+
+    header.admin-page__head
+      h1.admin-page__title= t('admin.assign_user_to', { name: role.name })
+
+    .admin-panel
+      .admin-panel__toolbar
+        form(method="get" action=`/admin/roles/${role.id}/assign`)
+          input(type="search" name="search" value=search placeholder=t('admin.search_placeholder'))
+          button.admin-btn.admin-btn-primary(type="submit")= t('admin.search')
+
+      form(method="post" action=`/admin/roles/${role.id}/assign-user`)
+        if usersToAssign.length
+          .admin-table-wrap
+            table.admin-table
+              thead
+                tr
+                  th(style="width:2.5rem")
+                    input(type="checkbox" id="selectAllAssign")
+                  th= t('admin.name')
+                  th= t('admin.email')
+              tbody
+                each u in usersToAssign
+                  tr
+                    td
+                      input(type="checkbox" name="userIds" value=u.id)
+                    td= `${u.firstName || ''} ${u.lastName || ''}`.trim() || '—'
+                    td= u.email
+          .admin-form-stack__actions(style="padding:1rem;border-top:1px solid var(--site-border)")
+            button.admin-btn.admin-btn-primary(type="submit")= t('admin.assign_selected')
+            a.admin-btn(href=`/admin/roles/${role.id}`)= t('admin.cancel')
+        else
+          p.admin-empty-hint(style="padding:1rem")= t('admin.no_users_available')
+
+  script.
+    document.getElementById('selectAllAssign')?.addEventListener('change', function () {
+      document.querySelectorAll('input[name="userIds"]').forEach((cb) => {
+        cb.checked = this.checked;
+      });
+    });

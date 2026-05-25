@@ -10,7 +10,7 @@ export interface ApplicationController
 @AfterAction("logActionCompletion")
 export class ApplicationController extends RailsController {
   protected flash(type: string, message: Record<string, string> | string) {
-    (this.req as { flash: (t: string, m: unknown) => void }).flash(
+    this.req.flash(
       type,
       typeof message === "string" ? { msg: message } : message,
     );

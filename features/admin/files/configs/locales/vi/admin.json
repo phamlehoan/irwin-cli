@@ -1,6 +1,24 @@
 {
   "admin": {
     "dashboard": "Bảng điều khiển",
+    "dashboard_lead": "Tổng quan ứng dụng và lối tắt tới các tác vụ thường dùng.",
+    "dashboard_welcome": "Chào mừng trở lại, {{name}}.",
+    "dashboard_no_permissions": "Tài khoản chưa có quyền quản trị. Liên hệ admin để được gán vai trò.",
+    "stat_users": "Tổng người dùng",
+    "stat_users_hint": "Xem tất cả",
+    "stat_active_users": "Đang hoạt động",
+    "stat_roles": "Vai trò",
+    "stat_roles_hint": "Quản lý vai trò",
+    "stat_features": "Tính năng",
+    "stat_features_hint": "Cây quyền",
+    "quick_actions": "Thao tác nhanh",
+    "action_manage_users": "Quản lý người dùng",
+    "action_manage_users_desc": "Tìm, sửa và xóa tài khoản",
+    "action_new_user_desc": "Tạo tài khoản mới kèm mật khẩu",
+    "action_roles_desc": "Vai trò và gán quyền",
+    "action_features_desc": "Module tính năng và mã quyền",
+    "promo_rbac_title": "Cần phân quyền RBAC?",
+    "promo_rbac_body": "Thêm RBAC theo tính năng (guard route, UI vai trò, seed).",
     "users": "Người dùng",
     "new_user": "Thêm người dùng",
     "edit_user": "Sửa người dùng",
@@ -25,7 +43,16 @@
     "back_to_users": "Quay lại danh sách"
   },
   "sidebar": {
+    "admin_panel": "Quản trị",
     "dashboard": "Tổng quan",
-    "users": "Người dùng"
+    "users": "Người dùng",
+    "roles": "Vai trò",
+    "features": "Tính năng",
+    "back_home": "Về trang chủ",
+    "admin_management": "Quản trị",
+    "collapse": "Thu gọn menu",
+    "expand": "Mở rộng menu",
+    "menu": "Mở menu",
+    "close_menu": "Đóng menu"
   }
 }

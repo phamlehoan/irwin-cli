@@ -1,1 +1,27 @@
-{}
+{
+  "header": {
+    "brand": "{{appTitle}}",
+    "home": "Home",
+    "auth_hint": "Sign in (irwin add auth)"
+  },
+  "footer": {
+    "tagline": "Built with Irwin"
+  },
+  "home": {
+    "welcome": "Welcome",
+    "intro": "A minimal Rails-style TypeScript app. Add Irwin feature packs as you grow.",
+    "hint_cli": "Run in your project root:",
+    "features_title": "Feature packs",
+    "features_lead": "Installed packs are enabled in this app. Others can be added with the Irwin CLI.",
+    "features_summary": "{{installed}} of {{total}} installed",
+    "feature_installed": "Installed",
+    "feature_available": "Not installed",
+    "feature_requires": "Requires:",
+    "feature_requires_missing": "Install first: {{list}}",
+    "feature_version": "v{{version}}",
+    "feature_copy": "Copy",
+    "feature_copy_aria": "Copy command {{command}}",
+    "feature_copied": "Copied",
+    "feature_copy_failed": "Could not copy"
+  }
+}

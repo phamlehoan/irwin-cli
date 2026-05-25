@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { log } from "../utils/logger";
-import { getIrwinCliRoot } from "./packageRoot";
 import type { FeatureManifest } from "./manifest";
+import { featureFilesDir, resolveFeatureSource } from "./featureSource";
 import { applyPatches } from "./patchEngine";
 import {
   isFeatureEnabled,
@@ -11,7 +11,9 @@ import {
   type FeatureEntry,
 } from "./registry";
 import { copyLocalesFromEnabledFeatures } from "./localeSync";
+import { collectPatchBackups } from "./removeFeature";
 import { mergePackageJsonDeps } from "./template";
+import { syncHomeFeatures } from "./syncHomeFeatures";
 
 export type ApplyFeatureOptions = {
   dryRun?: boolean;
@@ -95,9 +97,9 @@ export function applyFeature(
 
   validateFeatureRequirements(manifest, projectRoot);
 
-  const cliRoot = getIrwinCliRoot();
+  const source = resolveFeatureSource(manifest.id, projectRoot);
   const filesFrom = manifest.files?.from ?? "files";
-  const filesSrc = path.join(cliRoot, "features", manifest.id, filesFrom);
+  const filesSrc = featureFilesDir(source, filesFrom);
   const copied: string[] = [];
 
   if (fs.existsSync(filesSrc)) {
@@ -123,14 +125,24 @@ export function applyFeature(
     );
   }
 
+  const patchBackups =
+    manifest.patches && manifest.patches.length > 0
+      ? collectPatchBackups(projectRoot, manifest.patches)
+      : [];
+
   const patchResults =
     manifest.patches && manifest.patches.length > 0
       ? applyPatches(projectRoot, manifest.patches, dryRun)
       : [];
 
   for (const pr of patchResults) {
+    if (pr.created) {
+      const msg = `  ${dryRun ? "would create" : "create"}  ${pr.file} (patch bootstrap)`;
+      dryRun ? log.info(msg) : log.success(msg);
+    }
     if (pr.applied > 0) {
-      log.success(`  patch   ${pr.file} (${pr.applied} op(s))`);
+      const msg = `  ${dryRun ? "would patch" : "patch"}   ${pr.file} (${pr.applied} op(s))`;
+      dryRun ? log.info(msg) : log.success(msg);
     }
     if (pr.skipped > 0) {
       log.warn(`  patch   ${pr.file} (${pr.skipped} marker(s) missing)`);
@@ -146,15 +158,29 @@ export function applyFeature(
       );
     }
 
-    if (!isFeatureEnabled(registry, manifest.id)) {
-      const entry: FeatureEntry = {
+    const artifacts = {
+      copiedFiles: copied,
+      patchBackups,
+    };
+
+    const existingIdx = registry.features.findIndex((f) => f.id === manifest.id);
+    if (existingIdx >= 0) {
+      registry.features[existingIdx] = {
+        ...registry.features[existingIdx],
+        version: manifest.version,
+        artifacts,
+      };
+    } else {
+      registry.features.push({
         id: manifest.id,
         version: manifest.version,
         addedAt: new Date().toISOString(),
-      };
-      registry.features.push(entry);
-      writeRegistry(projectRoot, registry);
+        artifacts,
+      });
     }
+    writeRegistry(projectRoot, registry);
+    const synced = syncHomeFeatures(projectRoot);
+    log.info(`  sync home catalog (${synced.featureCount} packs)`);
   }
 
   return { copied, patchResults };

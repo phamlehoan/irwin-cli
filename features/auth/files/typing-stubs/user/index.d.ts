@@ -1,13 +1,19 @@
-import { User } from "@db";
+import type { User } from "@db";
+import "express-session";
+
+declare module "express-session" {
+  interface SessionData {
+    userId?: string;
+  }
+}
 
 declare global {
   namespace Express {
-    interface User extends import("@db").User {}
+    interface Request {
+      user?: User | null;
+      requestId?: string;
+    }
   }
 }
 
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: User | null;
-  }
-}
+export {};

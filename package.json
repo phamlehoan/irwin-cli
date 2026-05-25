@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
-    "test": "npm run build && node --test dist/core/patchEngine.test.js"
+    "test": "npm run build && node --test dist/core/patchEngine.test.js dist/core/removeFeature.test.js",
+    "test:e2e": "npm run build && node scripts/e2e-smoke.mjs"
   },
   "engines": {
     "node": ">=20"

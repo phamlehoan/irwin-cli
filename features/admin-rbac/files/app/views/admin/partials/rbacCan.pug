@@ -1,0 +1,4 @@
+-
+  const rbacUserPermCodes = (currentUser && currentUser.permissions) || []
+  const rbacUsesNav = Array.isArray(currentUser?.permissions)
+  const rbacCan = (code) => !rbacUsesNav || rbacUserPermCodes.includes(code)

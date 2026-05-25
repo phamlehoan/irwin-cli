@@ -1,5 +1,14 @@
-extends ../layouts/main.layout.pug
+extends ../layouts/main/layout
 
 block content
-  h1 {{appTitle}}
-  p Minimal Irwin app — enable features with #[code irwin add api].
+  section.hero
+    h1= t('home.welcome')
+    p= t('home.intro')
+  include _features
+  p.feature-hint
+    = t('home.hint_cli')
+    | 
+    code irwin add &lt;feature&gt;
+
+  if featureRows && featureRows.length
+    script(src="/javascripts/mainLayout/featureCopy.js" defer)

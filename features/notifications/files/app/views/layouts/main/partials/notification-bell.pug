@@ -1,0 +1,28 @@
+include ../../../notifications.view/_icons
+
+- const unreadCount = typeof unreadNotificationCount === 'number' ? unreadNotificationCount : 0
+- const preview = Array.isArray(notificationPreview) ? notificationPreview : []
+
+details.notif-bell
+  summary.notif-bell__trigger(type="button" aria-label=t('notifications.nav_aria'))
+    +iconBell()
+    if unreadCount > 0
+      span.notif-bell__badge= unreadCount > 99 ? '99+' : unreadCount
+  .notif-bell__panel(role="region" aria-label=t('notifications.nav_aria'))
+    .notif-bell__head
+      strong= t('notifications.nav_title')
+      if unreadCount > 0
+        button.notif-bell__mark-all(type="button" data-notif-mark-all)= t('notifications.mark_all_read')
+    if preview.length === 0
+      p.notif-bell__empty= t('notifications.empty_short')
+    else
+      ul.notif-bell__list#notif-bell-list
+        each n in preview
+          li.notif-bell__row(class=!n.readAt ? 'notif-bell__row--unread' : '' data-notif-id=n.id)
+            span.notif-bell__row-icon(class=`notif-bell__row-icon--${n.type}`)
+              +iconType(n.type)
+            span.notif-bell__row-text
+              strong= n.title
+              if n.message
+                span.notif-bell__row-msg= n.message
+    a.notif-bell__footer(href=withLocale('/notifications'))= t('notifications.view_all')

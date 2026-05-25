@@ -1,0 +1,25 @@
+[build]
+  command = "pnpm netlify-build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = [
+    "@prisma/client",
+    "@libsql/linux-x64-gnu",
+    "@prisma/adapter-better-sqlite3",
+    "better-sqlite3",
+    "bcrypt",
+  ]
+  included_files = [
+    "configs/locales/**",
+    "app/views/**",
+    "app/assets/**",
+    "public/**",
+  ]

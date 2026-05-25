@@ -1,0 +1,36 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    header.admin-page__head
+      h1.admin-page__title= t('admin.features')
+
+    .admin-panel
+      .admin-panel__toolbar
+        form(method="get" action="/admin/features")
+          input(type="search" name="search" value=search placeholder=t('admin.search_placeholder'))
+          button.admin-btn.admin-btn-primary(type="submit")= t('admin.search')
+
+      if features.length
+        .admin-table-wrap
+          table.admin-table
+            thead
+              tr
+                th= t('admin.code')
+                th= t('admin.name')
+                th Type
+                th= t('admin.permissions')
+                th.admin-table__actions
+            tbody
+              each feat in features
+                tr
+                  td
+                    code= feat.code
+                  td= feat.name
+                  td= feat.type
+                  td= feat.permissions.length
+                  td.admin-table__actions
+                    a.admin-btn(href=`/admin/features/${feat.id}`)= t('admin.view')
+      else
+        p.admin-empty-hint(style="padding:1rem")= t('admin.no_features')

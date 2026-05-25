@@ -1,0 +1,26 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    nav.admin-breadcrumb(aria-label="breadcrumb")
+      a(href="/admin/roles")= t('admin.roles')
+      span.admin-breadcrumb__sep /
+      a(href=`/admin/roles/${role.id}`)= role.name
+      span.admin-breadcrumb__sep /
+      span= t('admin.edit_role')
+
+    .admin-panel
+      form.admin-form-stack(method="post" action=`/admin/roles/${role.id}?_method=PUT`)
+        .admin-field
+          label.admin-field__label(for="roleCode")= t('admin.code')
+          input#roleCode(type="text" name="code" value=role.code required)
+        .admin-field
+          label.admin-field__label(for="roleName")= t('admin.name')
+          input#roleName(type="text" name="name" value=role.name required)
+        .admin-field
+          label.admin-field__label(for="roleDesc") Description
+          textarea#roleDesc(name="description")= role.description || ''
+        .admin-form-stack__actions
+          button.admin-btn.admin-btn-primary(type="submit")= t('admin.save')
+          a.admin-btn(href=`/admin/roles/${role.id}`)= t('admin.cancel')

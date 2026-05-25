@@ -1,0 +1,22 @@
+{
+  "notifications": {
+    "page_title": "Notifications",
+    "nav_title": "Notifications",
+    "nav_aria": "Notifications",
+    "view_all": "View all",
+    "mark_all_read": "Mark all as read",
+    "mark_read": "Mark as read",
+    "open_link": "Open",
+    "tab_all": "All",
+    "tab_unread": "Unread",
+    "filter_label": "Filter notifications",
+    "unread_count": "{{count}} unread",
+    "all_caught_up": "You're all caught up",
+    "empty": "No notifications yet.",
+    "empty_short": "No notifications",
+    "empty_title": "No notifications yet",
+    "empty_hint": "When something happens, you'll see it here.",
+    "empty_unread_title": "No unread notifications",
+    "empty_unread_hint": "You've read everything."
+  }
+}

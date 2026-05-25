@@ -1,0 +1,146 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    nav.admin-breadcrumb(aria-label="breadcrumb")
+      a(href="/admin/roles")= t('admin.roles')
+      span.admin-breadcrumb__sep /
+      span= role.name
+
+    header.admin-page__head
+      h1.admin-page__title= role.name
+      .admin-page__actions
+        if rbacCan('RAP::UPDATE') && !role.isReadOnly
+          a.admin-btn(href=`/admin/roles/${role.id}/edit`)= t('admin.edit')
+        if rbacCan('RAP::DELETE') && !role.isReadOnly
+          form.admin-inline-form(method="post" action=`/admin/roles/${role.id}?_method=DELETE` onsubmit="return confirm('Delete this role?')")
+            button.admin-btn.admin-btn-danger(type="submit")= t('admin.delete')
+        a.admin-btn(href="/admin/roles")= t('admin.back_to_roles')
+
+    .admin-panel(style="padding:1.25rem")
+      if role.isReadOnly
+        p.admin-badge= t('admin.role_read_only')
+      dl.admin-dl
+        div
+          dt= t('admin.name')
+          dd= role.name
+        div
+          dt= t('admin.code')
+          dd
+            code= role.code
+        div
+          dt Description
+          dd= role.description || '—'
+
+    .admin-panel
+      header.admin-card__head(style="padding:1rem 1rem 0;margin:0")
+        h2.admin-card__title= t('admin.assigned_users')
+        if rbacCan('RAP::UPDATE')
+          button.admin-btn.admin-btn-primary(type="button" onclick="openAssignDialog()")= t('admin.assign_user')
+      .admin-panel__toolbar
+        form(method="get" action=`/admin/roles/${role.id}`)
+          input(type="hidden" name="sortBy" value=sortBy)
+          input(type="hidden" name="sortOrder" value=sortOrder)
+          input(type="hidden" name="perPage" value=perPage)
+          input(type="search" name="search" value=search placeholder=t('admin.search_placeholder'))
+          select(name="filterStatus" onchange="this.form.submit()")
+            option(value="")= t('admin.all_status')
+            option(value="ACTIVE" selected=filterStatus==='ACTIVE') ACTIVE
+            option(value="INACTIVE" selected=filterStatus==='INACTIVE') INACTIVE
+            option(value="PENDING" selected=filterStatus==='PENDING') PENDING
+          button.admin-btn(type="submit")= t('admin.search')
+      if assignedUsers.length
+        .admin-table-wrap
+          table.admin-table
+            thead
+              tr
+                th
+                  a(href=buildSortUrl('accountName'))= t('admin.name')
+                th
+                  a(href=buildSortUrl('email'))= t('admin.email')
+                th= t('admin.status')
+                th.admin-table__actions
+            tbody
+              each u in assignedUsers
+                tr
+                  td= `${u.firstName || ''} ${u.lastName || ''}`.trim() || '—'
+                  td= u.email
+                  td= u.status
+                  td.admin-table__actions
+                    if rbacCan('RAP::UPDATE')
+                      form.admin-inline-form(method="post" action=`/admin/roles/${role.id}/users/${u.id}?_method=DELETE` onsubmit="return confirm('Unassign this user?')")
+                        button.admin-btn.admin-btn-danger(type="submit")= t('admin.unassign')
+      else
+        p.admin-empty-hint(style="padding:1rem")= t('admin.no_users_assigned')
+      if totalAssigned > perPage
+        nav.admin-pagination
+          - const totalPages = Math.ceil(totalAssigned / perPage)
+          if page > 1
+            a.admin-btn(href=`/admin/roles/${role.id}?page=${page - 1}${buildQueryString()}`) ←
+          span Page #{page} / #{totalPages}
+          if page < totalPages
+            a.admin-btn(href=`/admin/roles/${role.id}?page=${page + 1}${buildQueryString()}`) →
+
+    - const rolePermInitialIds = [...new Set((role.permissions || []).map(rp => rp.permissionId || (rp.permission && rp.permission.id)).filter(Boolean))]
+    - const rolePermFormAction = withLocale('/admin/roles/' + role.id + '?_method=PUT')
+    - const rolePermReadOnly = !!(role.isReadOnly || !canUpdateRole)
+    #rolePermissionsApp
+    script#rolePermissionsData(type="application/json")
+      != JSON.stringify({ formAction: rolePermFormAction, features, initialPermissionIds: rolePermInitialIds, isReadOnly: rolePermReadOnly })
+
+  dialog#assignUserDialog.admin-dialog
+    .admin-dialog__panel
+      h3.admin-card__title= t('admin.assign_user_to', { name: role.name })
+      .admin-field
+        label.admin-field__label(for="assignSearch")= t('admin.search_placeholder')
+        input#assignSearch(type="search")
+      button.admin-btn(type="button" onclick="loadAssignUsers()")= t('admin.search')
+      #assignUsersContent
+        p.admin-empty-hint Loading…
+      form#assignUserForm(method="post" action=`/admin/roles/${role.id}/assign-user`)
+        .admin-dialog__footer
+          button.admin-btn(type="button" onclick="document.getElementById('assignUserDialog').close()")= t('admin.cancel')
+          button.admin-btn.admin-btn-primary(type="submit" id="assignSubmitBtn" disabled)= t('admin.assign_selected')
+
+  script.
+    const roleId = '#{role.id}';
+    function loadAssignUsers() {
+      const container = document.getElementById('assignUsersContent');
+      if (!container) return;
+      container.innerHTML = '<p class="admin-empty-hint">Loading…</p>';
+      const search = document.getElementById('assignSearch')?.value || '';
+      fetch(`/admin/roles/${roleId}/assign-users.json?search=${encodeURIComponent(search)}`, {
+        headers: { Accept: 'application/json' },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data.usersToAssign || data.usersToAssign.length === 0) {
+            container.innerHTML = '<p class="admin-empty-hint">No users available.</p>';
+            document.getElementById('assignSubmitBtn').disabled = true;
+            return;
+          }
+          let html = '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th></th><th>Name</th><th>Email</th></tr></thead><tbody>';
+          data.usersToAssign.forEach((u) => {
+            const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || '—';
+            html += `<tr><td><input type="checkbox" name="userIds" value="${u.id}" form="assignUserForm"></td><td>${name}</td><td>${u.email}</td></tr>`;
+          });
+          html += '</tbody></table></div>';
+          container.innerHTML = html;
+          document.getElementById('assignSubmitBtn').disabled = false;
+        })
+        .catch(() => {
+          container.innerHTML = '<p class="admin-empty-hint">Failed to load users.</p>';
+        });
+    }
+    function openAssignDialog() {
+      const d = document.getElementById('assignUserDialog');
+      if (d) {
+        d.showModal();
+        loadAssignUsers();
+      }
+    }
+    document.getElementById('assignUserDialog')?.addEventListener('close', () => {
+      const s = document.getElementById('assignSearch');
+      if (s) s.value = '';
+    });

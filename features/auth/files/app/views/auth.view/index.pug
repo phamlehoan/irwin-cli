@@ -11,3 +11,6 @@ block content
         span= t('auth.password')
         input(type="password", name="password", required, autocomplete="current-password")
       button(type="submit")= t('auth.login')
+    p.auth-footer
+      | #{t('auth.no_account')}
+      a(href="/users/new")= t('auth.register_link')

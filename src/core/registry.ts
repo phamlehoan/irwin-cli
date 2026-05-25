@@ -2,10 +2,22 @@ import fs from "fs";
 import path from "path";
 import type { PackageManager } from "../utils/packageManager";
 
+export type PatchBackup = {
+  file: string;
+  /** `null` when the file did not exist before patches were applied. */
+  content: string | null;
+};
+
+export type FeatureArtifacts = {
+  copiedFiles: string[];
+  patchBackups: PatchBackup[];
+};
+
 export type FeatureEntry = {
   id: string;
   version: string;
   addedAt: string;
+  artifacts?: FeatureArtifacts;
 };
 
 export type IrwinRegistry = {

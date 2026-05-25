@@ -11,12 +11,15 @@
     },
     "devDependencies": {
       "@types/express-session": "^1.18.2",
-      "@types/express-flash": "^0.0.5",
       "@types/bcrypt": "^5.0.2"
     }
   },
   "files": {
-    "from": "files"
+    "from": "files",
+    "overwrite": [
+      "typing-stubs/express/index.d.ts",
+      "typing-stubs/express-flash.d.ts"
+    ]
   },
   "patches": [
     {

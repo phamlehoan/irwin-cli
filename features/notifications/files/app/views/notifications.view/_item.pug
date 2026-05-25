@@ -1,0 +1,25 @@
+include _icons
+
+mixin notificationItem(n, opts)
+  - const isUnread = !n.readAt
+  - const link = n.data && n.data.link
+  - const compact = opts && opts.compact
+  article.notif-item(
+    class=isUnread ? 'notif-item--unread' : ''
+    class=compact ? 'notif-item--compact' : ''
+    data-notif-id=n.id
+    data-notif-unread=isUnread ? '1' : '0'
+  )
+    .notif-item__icon(class=`notif-item__icon--${n.type}`)
+      +iconType(n.type)
+    .notif-item__body
+      .notif-item__head
+        h3.notif-item__title= n.title
+        time.notif-item__time(datetime=n.createdAt)= new Date(n.createdAt).toLocaleString()
+      if n.message
+        p.notif-item__message= n.message
+      .notif-item__actions
+        if link
+          a.notif-item__link(href=link)= t('notifications.open_link')
+        if isUnread
+          button.notif-item__read(type="button" data-notif-mark-read=data-notif-id=n.id)= t('notifications.mark_read')

@@ -1,0 +1,34 @@
+{
+  "id": "netlify",
+  "version": "1.0.0",
+  "description": "Netlify deploy: serverless-http function + netlify.toml",
+  "requires": ["database"],
+  "npm": {
+    "dependencies": {
+      "serverless-http": "^3.2.0",
+      "@netlify/functions": "^2.8.2"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "package.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"start\": \"node dist/index.js\"",
+          "content": ",\n    \"netlify-build\": \"prisma generate && vite build 2>/dev/null || true && tsc && tsc-alias\""
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Review netlify.toml — set build command and secrets (TURSO_* if using turso pack)",
+      "Function entry: netlify/functions/server.ts",
+      "Consider irwin add turso for libSQL on Netlify"
+    ]
+  }
+}

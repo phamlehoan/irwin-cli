@@ -1,23 +1,31 @@
 doctype html
-html(lang=locale || 'en')
+html(lang=typeof locale !== 'undefined' ? locale : 'en')
   head
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1")
     title= title
+    link(rel="stylesheet", href="/stylesheets/mainLayout/style.css")
     link(rel="stylesheet", href="/stylesheets/admin/style.css")
   body.admin-body
-    .admin-shell
-      aside.admin-sidebar
-        .admin-brand Admin
-        a(href="/admin" class=activeMenu === 'home' ? 'active' : '')= t('sidebar.dashboard')
-        a(href="/admin/users" class=activeMenu === 'users' ? 'active' : '')= t('sidebar.users')
-        a(href="/") Home
-        form(method="post" action="/auth/logout" style="margin-top:1rem;padding:0 1.25rem")
-          button.admin-btn(type="submit") Logout
-      .admin-main
-        header.admin-header
-          span= currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : ''
-          span= currentUser ? currentUser.email : ''
-        include ../utilities/flash
-        .admin-content
-          block content
+    .admin-layout#adminLayout
+      include partials/sidebar
+      button.admin-sidebar-backdrop(type="button" aria-label=t('sidebar.close_menu') tabindex="-1")
+      script.
+        (function () {
+          try {
+            var mobile = window.matchMedia("(max-width: 767px)").matches;
+            var el = document.getElementById("adminSidebar");
+            if (!mobile && el && localStorage.getItem("irwin.admin.sidebarCollapsed") === "1") {
+              el.classList.add("admin-sidebar--collapsed");
+              var shell = el.closest(".admin-sidebar-shell");
+              if (shell) shell.classList.add("admin-sidebar-shell--collapsed");
+            }
+          } catch (e) { /* ignore */ }
+        })();
+      .admin-column
+        include partials/topbar
+        .admin-main
+          include ../utilities/flash
+          .admin-content
+            block content
+    script(src="/javascripts/admin/sidebar.js" defer)

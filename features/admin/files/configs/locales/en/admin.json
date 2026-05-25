@@ -1,6 +1,24 @@
 {
   "admin": {
     "dashboard": "Admin dashboard",
+    "dashboard_lead": "Overview of your application and quick links to common tasks.",
+    "dashboard_welcome": "Welcome back, {{name}}.",
+    "dashboard_no_permissions": "Your account has no admin permissions yet. Ask an administrator to assign a role.",
+    "stat_users": "Total users",
+    "stat_users_hint": "View all",
+    "stat_active_users": "Active users",
+    "stat_roles": "Roles",
+    "stat_roles_hint": "Manage roles",
+    "stat_features": "Features",
+    "stat_features_hint": "Permission tree",
+    "quick_actions": "Quick actions",
+    "action_manage_users": "Manage users",
+    "action_manage_users_desc": "Search, edit, and remove accounts",
+    "action_new_user_desc": "Create a new account with password",
+    "action_roles_desc": "Roles and permission assignments",
+    "action_features_desc": "Feature modules and permission codes",
+    "promo_rbac_title": "Need roles & permissions?",
+    "promo_rbac_body": "Add feature-based RBAC (route guards, roles UI, seed).",
     "users": "Users",
     "new_user": "New user",
     "edit_user": "Edit user",
@@ -25,7 +43,16 @@
     "back_to_users": "Back to users"
   },
   "sidebar": {
+    "admin_panel": "Admin",
     "dashboard": "Dashboard",
-    "users": "Users"
+    "users": "Users",
+    "roles": "Roles",
+    "features": "Features",
+    "back_home": "Back to site",
+    "admin_management": "Administration",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "menu": "Open menu",
+    "close_menu": "Close menu"
   }
 }

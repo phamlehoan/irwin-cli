@@ -1,6 +1,85 @@
 extends ../../layouts/admin/layout
+include _icons
 
 block content
-  .admin-card
-    h1= t('admin.dashboard')
-    p #{userCount} #{t('admin.users').toLowerCase()}
+  .admin-page-head
+    h1.admin-page-title= t('admin.dashboard')
+    if currentUser
+      p.admin-page-lead= t('admin.dashboard_welcome', { name: currentUser.firstName })
+    else
+      p.admin-page-lead= t('admin.dashboard_lead')
+
+  .admin-stat-grid
+    if canUsers
+      a.admin-stat-card.admin-stat-card--users(href="/admin/users")
+        .admin-stat-card__icon
+          +iconStatUsers()
+        .admin-stat-card__body
+          span.admin-stat-card__value= userCount
+          span.admin-stat-card__label= t('admin.stat_users')
+        span.admin-stat-card__hint= t('admin.stat_users_hint')
+
+    if canUsers
+      .admin-stat-card.admin-stat-card--active
+        .admin-stat-card__icon
+          +iconStatActive()
+        .admin-stat-card__body
+          span.admin-stat-card__value= activeUserCount
+          span.admin-stat-card__label= t('admin.stat_active_users')
+
+    if hasRbac && canRoles
+      a.admin-stat-card.admin-stat-card--roles(href="/admin/roles")
+        .admin-stat-card__icon
+          +iconStatRoles()
+        .admin-stat-card__body
+          span.admin-stat-card__value= roleCount
+          span.admin-stat-card__label= t('admin.stat_roles')
+        span.admin-stat-card__hint= t('admin.stat_roles_hint')
+
+    if hasRbac && canRoles
+      a.admin-stat-card.admin-stat-card--features(href="/admin/features")
+        .admin-stat-card__icon
+          +iconStatFeatures()
+        .admin-stat-card__body
+          span.admin-stat-card__value= featureCount
+          span.admin-stat-card__label= t('admin.stat_features')
+        span.admin-stat-card__hint= t('admin.stat_features_hint')
+
+  section.admin-section
+    h2.admin-section__title= t('admin.quick_actions')
+    .admin-action-grid
+      if canUsers
+        a.admin-action-card(href="/admin/users")
+          .admin-action-card__icon
+            +iconActionList()
+          span.admin-action-card__title= t('admin.action_manage_users')
+          span.admin-action-card__desc= t('admin.action_manage_users_desc')
+        a.admin-action-card(href="/admin/users/new")
+          .admin-action-card__icon.admin-action-card__icon--accent
+            +iconActionPlus()
+          span.admin-action-card__title= t('admin.new_user')
+          span.admin-action-card__desc= t('admin.action_new_user_desc')
+      if canRoles
+        a.admin-action-card(href="/admin/roles")
+          .admin-action-card__icon
+            +iconStatRoles()
+          span.admin-action-card__title= t('admin.roles')
+          span.admin-action-card__desc= t('admin.action_roles_desc')
+        a.admin-action-card(href="/admin/features")
+          .admin-action-card__icon
+            +iconStatFeatures()
+          span.admin-action-card__title= t('admin.features')
+          span.admin-action-card__desc= t('admin.action_features_desc')
+
+  if !hasRbac
+    .admin-promo-card
+      .admin-promo-card__icon(aria-hidden="true")
+        +iconSpark()
+      div
+        strong= t('admin.promo_rbac_title')
+        p= t('admin.promo_rbac_body')
+        code.admin-promo-card__cmd irwin add admin-rbac
+
+  else if usesRbac && !canUsers && !canRoles
+    .admin-promo-card.admin-promo-card--muted
+      p= t('admin.dashboard_no_permissions')

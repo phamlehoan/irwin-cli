@@ -1,0 +1,25 @@
+extends ../layouts/auth/layout
+
+block content
+  .auth-card
+    h1= t('users.register_title')
+    form.auth-form(method="POST", action="/users")
+      label
+        span= t('users.first_name')
+        input(type="text", name="firstName", required, autocomplete="given-name")
+      label
+        span= t('users.last_name')
+        input(type="text", name="lastName", required, autocomplete="family-name")
+      label
+        span= t('auth.enter_email')
+        input(type="email", name="email", required, autocomplete="email")
+      label
+        span= t('auth.password')
+        input(type="password", name="password", required, minlength="6", autocomplete="new-password")
+      label
+        span= t('auth.confirm_password')
+        input(type="password", name="passwordConfirmation", required, minlength="6", autocomplete="new-password")
+      button(type="submit")= t('users.create_account')
+    p.auth-footer
+      | #{t('auth.have_account')}
+      a(href="/auth")= t('auth.login')

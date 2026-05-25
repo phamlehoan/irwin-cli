@@ -1,0 +1,31 @@
+import { Feature } from "@configs/enum";
+import { AdminRoleController } from "@controllers";
+import { Permission } from "@middlewares";
+import { action, RailsRoute } from "ts-rails";
+
+export class AdminRoleRoute extends RailsRoute {
+  public draw() {
+    this.resource(AdminRoleController, {
+      setPermissionFor: Feature.RoleAndPermission,
+    });
+
+    const updatePerms = [`${Feature.RoleAndPermission}::${Permission.Update}`];
+
+    this.get("/:id/assign", action(AdminRoleController, "assignPage"), {
+      setPermissionForAny: updatePerms,
+    });
+    this.get(
+      "/:id/assign-users.json",
+      action(AdminRoleController, "assignUsersJson"),
+      { setPermissionForAny: updatePerms },
+    );
+    this.post("/:id/assign-user", action(AdminRoleController, "assignUser"), {
+      setPermissionForAny: updatePerms,
+    });
+    this.delete(
+      "/:id/users/:userId",
+      action(AdminRoleController, "unassignUser"),
+      { setPermissionForAny: updatePerms },
+    );
+  }
+}

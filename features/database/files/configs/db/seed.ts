@@ -5,11 +5,17 @@ loadDotenv();
 import { PasswordType, UserStatus } from "@models/enums";
 import models from "@models";
 import bcrypt from "bcrypt";
+import { RailsApplication, Security } from "ts-rails";
+
+RailsApplication.hasher = {
+  hash: (password) => bcrypt.hash(password, 10),
+  verify: (password, hash) => bcrypt.compare(password, hash),
+};
 
 async function main() {
   const email = "admin@example.com";
   const password = "password123";
-  const hashed = await bcrypt.hash(password, 10);
+  const hashed = await Security.hashPassword(password);
 
   const user = await models.user.upsert({
     where: { email },

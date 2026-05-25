@@ -1,0 +1,60 @@
+{
+  "id": "socket",
+  "version": "1.0.0",
+  "description": "Socket.IO channels + floating chat demo widget on main layout",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "socket.io": "^4.8.3"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { Route } from \"./routes\";",
+          "content": "\nimport * as channels from \"@channels\";\n\nRailsApplication.channelClasses = Object.values(channels);\n"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@channels\": [\"./app/channels\"],\n      \"@channels/*\": [\"./app/channels/*\"],"
+        }
+      ]
+    },
+    {
+      "file": "app/views/layouts/main/layout.pug",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:main-layout-widgets",
+          "content": "\n    include partials/chat-widget"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:main-layout-scripts",
+          "content": "\n    link(rel=\"stylesheet\" href=\"/stylesheets/mainLayout/widgets/chat.css\")\n    script(src=\"/socket.io/socket.io.js\")\n    script(src=\"/javascripts/mainLayout/widgets/chat.js\")"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Chat widget on every main-layout page (bottom-right)",
+      "Open two browser tabs, send messages in room chat_room",
+      "With auth: session cookie identifies you; guests still work",
+      "PingChannel: connect and emit ping:client",
+      "Generate: pnpm exec irwin g channel MyRoom"
+    ]
+  }
+}

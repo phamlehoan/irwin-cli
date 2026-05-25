@@ -1,0 +1,22 @@
+{
+  "notifications": {
+    "page_title": "Thông báo",
+    "nav_title": "Thông báo",
+    "nav_aria": "Thông báo",
+    "view_all": "Xem tất cả",
+    "mark_all_read": "Đánh dấu đã đọc hết",
+    "mark_read": "Đánh dấu đã đọc",
+    "open_link": "Mở",
+    "tab_all": "Tất cả",
+    "tab_unread": "Chưa đọc",
+    "filter_label": "Lọc thông báo",
+    "unread_count": "{{count}} chưa đọc",
+    "all_caught_up": "Bạn đã xem hết",
+    "empty": "Chưa có thông báo.",
+    "empty_short": "Không có thông báo",
+    "empty_title": "Chưa có thông báo",
+    "empty_hint": "Khi có sự kiện mới, bạn sẽ thấy ở đây.",
+    "empty_unread_title": "Không còn thông báo chưa đọc",
+    "empty_unread_hint": "Bạn đã đọc hết rồi."
+  }
+}

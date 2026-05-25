@@ -1,0 +1,32 @@
+name: irwin-cli CI
+
+on:
+  push:
+    paths:
+      - "irwin-cli/**"
+      - ".github/workflows/irwin-cli-ci.yml"
+  pull_request:
+    paths:
+      - "irwin-cli/**"
+      - ".github/workflows/irwin-cli-ci.yml"
+
+defaults:
+  run:
+    working-directory: irwin-cli
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: irwin-cli/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:e2e

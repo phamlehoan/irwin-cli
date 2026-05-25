@@ -1,5 +1,6 @@
 import { HomeController } from "@controllers";
 import { RailsRoute, RestActions } from "ts-rails";
+// @irwin:rails-route-permissions
 
 // @irwin:routes-imports
 

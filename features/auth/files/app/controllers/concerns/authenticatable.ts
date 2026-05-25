@@ -23,4 +23,9 @@ export const Authenticatable = {
     }
     return true;
   },
+
+  /** Alias used by @BeforeAction("requireLogin") on admin/profile controllers. */
+  requireLogin(this: ApplicationController): boolean {
+    return this.authenticateUser();
+  },
 };

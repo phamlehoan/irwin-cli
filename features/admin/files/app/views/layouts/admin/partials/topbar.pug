@@ -1,0 +1,30 @@
+header.site-header.admin-topbar
+  .site-header__inner
+    .admin-topbar__start
+      include sidebar-toggle
+      a.site-brand(href="/admin")= t('sidebar.admin_panel')
+    nav.site-nav(aria-label="Admin top")
+      a.site-nav__link(href="/")= t('header.home')
+      include ../../main/partials/locale-switcher
+      if currentUser
+        - const initials = `${(currentUser.firstName || '')[0] || ''}${(currentUser.lastName || '')[0] || ''}`.toUpperCase() || '?'
+        details.site-user-menu
+          summary.site-user-menu__trigger(type="button")
+            if currentUser.avatarUrl
+              img.site-user-avatar.site-user-avatar--img(src=currentUser.avatarUrl alt="")
+            else
+              span.site-user-avatar(aria-hidden="true")= initials
+            span.site-user-menu__name.site-user-menu__name--admin= `${currentUser.firstName} ${currentUser.lastName}`
+          .site-user-menu__panel(role="menu")
+            .site-user-menu__header
+              if currentUser.avatarUrl
+                img.site-user-avatar.site-user-avatar--lg.site-user-avatar--img(src=currentUser.avatarUrl alt="")
+              else
+                span.site-user-avatar.site-user-avatar--lg= initials
+              div
+                strong= `${currentUser.firstName} ${currentUser.lastName}`
+                small= currentUser.email
+            a.site-user-menu__item(href="/me" role="menuitem")= t('header.profile')
+            a.site-user-menu__item(href=`/auth/${encodeURIComponent(currentUser.email)}/edit` role="menuitem")= t('header.change_password')
+            form.site-user-menu__item(method="post" action="/auth/logout" role="menuitem")
+              button.site-user-menu__logout(type="submit")= t('header.sign_out')

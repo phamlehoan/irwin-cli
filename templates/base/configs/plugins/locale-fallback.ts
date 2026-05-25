@@ -33,6 +33,19 @@ function lookup(tree: LocaleTree, key: string): string {
   return typeof node === "string" ? node : key;
 }
 
+/** i18next-style placeholders in locale strings (e.g. installed, total). */
+function interpolate(
+  template: string,
+  options?: Record<string, unknown>,
+): string {
+  if (!options) return template;
+  return template.replace(/\{\{(\w+)\}\}/g, (_, name: string) => {
+    const value = options[name];
+    if (value === undefined || value === null) return `{{${name}}}`;
+    return String(value);
+  });
+}
+
 /** English-only `t()` when the i18n feature pack is not enabled. */
 export function englishLocaleMiddleware(
   _req: Request,
@@ -41,7 +54,8 @@ export function englishLocaleMiddleware(
 ) {
   const tree = loadEnglishCatalog();
   res.locals.locale = "en";
-  res.locals.t = (key: string) => lookup(tree, key);
+  res.locals.t = (key: string, options?: Record<string, unknown>) =>
+    interpolate(lookup(tree, key), options);
   res.locals.withLocale = (href: string) => href;
   next();
 }

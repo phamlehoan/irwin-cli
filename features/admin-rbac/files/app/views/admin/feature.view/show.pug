@@ -1,0 +1,27 @@
+extends ../../layouts/admin/layout
+
+block content
+  .admin-card
+    h1= feature.name
+    p
+      strong= t('admin.code')
+      |  #{feature.code}
+    p
+      strong Type
+      |  #{feature.type}
+    if feature.parent
+      p
+        strong Parent
+        |  #{feature.parent.code}
+    h2 Permissions
+    ul
+      each perm in feature.permissions
+        li= `${perm.code} — ${perm.name}`
+    if feature.children && feature.children.length
+      h2 Children
+      ul
+        each child in feature.children
+          li
+            a(href=`/admin/features/${child.id}`)= child.code
+    p
+      a.admin-btn(href="/admin/features")= t('admin.back_to_features')

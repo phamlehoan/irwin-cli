@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getIrwinCliRoot } from "./packageRoot";
+import { listAllFeatureIds, resolveFeatureSource } from "./featureSource";
 
 export type PatchOp =
   | { type: "insertAfter"; marker: string; content: string }
@@ -21,7 +21,7 @@ export type FeatureManifest = {
     /** Paths (relative to project root) copied even when the file already exists. */
     overwrite?: string[];
   };
-  /** i18n: copy configs/locales from other enabled feature packs (not from i18n/files). */
+  /** Copy configs/locales from other enabled feature packs (e.g. admin → vi/admin.json). */
   syncLocalesFromEnabledFeatures?: boolean;
   patches?: Array<{
     file: string;
@@ -36,38 +36,22 @@ export type FeatureManifest = {
   };
 };
 
-export function loadManifest(featureId: string): FeatureManifest {
-  const root = getIrwinCliRoot();
-  const manifestPath = path.join(
-    root,
-    "features",
-    featureId,
-    "manifest.json",
-  );
-  if (!fs.existsSync(manifestPath)) {
-    throw new Error(`Unknown feature "${featureId}" (no manifest.json)`);
-  }
+export function loadManifest(
+  featureId: string,
+  projectRoot?: string,
+): FeatureManifest {
+  const { root } = resolveFeatureSource(featureId, projectRoot);
   const manifest = JSON.parse(
-    fs.readFileSync(manifestPath, "utf8"),
+    fs.readFileSync(path.join(root, "manifest.json"), "utf8"),
   ) as FeatureManifest;
   if (manifest.id !== featureId) {
     throw new Error(
-      `Feature manifest id mismatch: folder "${featureId}" vs manifest.id "${manifest.id}"`,
+      `Feature manifest id mismatch: requested "${featureId}" vs manifest.id "${manifest.id}"`,
     );
   }
   return manifest;
 }
 
-export function listFeatureIds(): string[] {
-  const root = getIrwinCliRoot();
-  const featuresDir = path.join(root, "features");
-  if (!fs.existsSync(featuresDir)) return [];
-  return fs
-    .readdirSync(featuresDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .filter((d) =>
-      fs.existsSync(path.join(featuresDir, d.name, "manifest.json")),
-    )
-    .map((d) => d.name)
-    .sort();
+export function listFeatureIds(projectRoot?: string): string[] {
+  return listAllFeatureIds(projectRoot);
 }

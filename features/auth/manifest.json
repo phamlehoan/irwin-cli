@@ -1,34 +1,47 @@
 {
   "id": "auth",
-  "version": "1.0.0",
-  "description": "Web login/logout with session (email + password)",
+  "version": "1.1.0",
+  "description": "Login, register, profile, i18n (en/vi), locale switcher + header user menu",
   "requires": ["database", "session"],
   "npm": {
     "dependencies": {
       "class-validator": "^0.15.1",
-      "class-transformer": "^0.5.1"
+      "class-transformer": "^0.5.1",
+      "i18next": "^25.10.10"
     }
   },
+  "syncLocalesFromEnabledFeatures": true,
   "files": {
     "from": "files",
     "overwrite": [
       "app/controllers/application.controller.ts",
+      "app/views/layouts/main/partials/header.pug",
       "configs/locales/en/common.json"
     ]
   },
   "patches": [
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  email     String @unique @map(\"email\")",
+          "content": "\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
+        }
+      ]
+    },
     {
       "file": "configs/routes/index.ts",
       "ops": [
         {
           "type": "insertAfter",
           "marker": "// @irwin:routes-imports",
-          "content": "import { action } from \"ts-rails\";\nimport { AuthRoute } from \"./auth.route\";\nimport { CurrentUserMiddleware } from \"@middlewares\";\n"
+          "content": "import { action } from \"ts-rails\";\nimport { AuthRoute } from \"./auth.route\";\nimport { ProfileRoute } from \"./profile.route\";\nimport { UserRoute } from \"./user.route\";\nimport { CurrentUserMiddleware } from \"@middlewares\";\n"
         },
         {
           "type": "insertAfter",
           "marker": "// @irwin:routes-draw",
-          "content": "    this.path(action(CurrentUserMiddleware));\n    // @irwin:after-current-user\n    this.path(\"/auth\", AuthRoute.draw());\n"
+          "content": "    this.path(action(CurrentUserMiddleware));\n    // @irwin:after-current-user\n    this.path(\"/auth\", AuthRoute.draw());\n    this.path(\"/users\", UserRoute.draw());\n    this.path(\"/me\", ProfileRoute.draw());\n"
         }
       ]
     },
@@ -37,8 +50,33 @@
       "ops": [
         {
           "type": "insertAfter",
+          "marker": "import { Route } from \"./routes\";",
+          "content": "\nimport { initI18n, i18nMiddleware } from \"./plugins/i18n\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:setup-services",
+          "content": "\n    await initI18n();"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:locale-middleware",
+          "content": "\n    this.app.use(i18nMiddleware);"
+        },
+        {
+          "type": "insertAfter",
           "marker": "// @irwin:load-concerns",
           "content": "\n    await this.loadConcerns(\n      ApplicationController.prototype,\n      appCodePath(\"controllers\", \"concerns\"),\n    );"
+        }
+      ]
+    },
+    {
+      "file": "configs/plugins/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:plugins-exports",
+          "content": "export * from \"./i18n\";\n"
         }
       ]
     },
@@ -57,17 +95,39 @@
       "ops": [
         {
           "type": "append",
-          "content": "export * from \"./auth.controller\";\n"
+          "content": "export * from \"./auth.controller\";\nexport * from \"./user.controller\";\nexport * from \"./profile.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/assets/stylesheets/authLayout/style.css",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n\n.auth-footer {\n  margin-top: 1.25rem;\n  font-size: 0.9rem;\n  color: #64748b;\n  text-align: center;\n}\n\n.auth-footer a {\n  color: #2563eb;\n  font-weight: 600;\n}\n"
+        }
+      ]
+    },
+    {
+      "file": "app/assets/stylesheets/mainLayout/style.css",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n\n.site-locale-menu {\n  position: relative;\n}\n\n.site-locale-menu__trigger {\n  list-style: none;\n  cursor: pointer;\n  display: inline-flex;\n  align-items: center;\n  gap: 0.4rem;\n  padding: 0.3rem 0.55rem;\n  border-radius: 999px;\n  border: 1px solid var(--site-border);\n  background: var(--site-surface);\n  color: var(--site-text);\n  font-size: 0.85rem;\n  font-weight: 600;\n}\n\n.site-locale-menu__trigger::-webkit-details-marker {\n  display: none;\n}\n\n.site-locale-menu__trigger:hover {\n  border-color: #cbd5e1;\n  background: var(--site-bg);\n}\n\n.site-locale-menu__icon {\n  width: 1rem;\n  height: 1rem;\n  color: var(--site-muted);\n}\n\n.site-locale-menu__code {\n  line-height: 1;\n}\n\n.site-locale-menu__panel {\n  position: absolute;\n  right: 0;\n  top: calc(100% + 0.35rem);\n  min-width: 10.5rem;\n  background: var(--site-surface);\n  border: 1px solid var(--site-border);\n  border-radius: 10px;\n  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);\n  padding: 0.35rem 0;\n  z-index: 200;\n}\n\n.site-locale-menu__item {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 0.75rem;\n  padding: 0.5rem 0.85rem;\n  color: var(--site-text);\n  text-decoration: none;\n  font-size: 0.9rem;\n}\n\n.site-locale-menu__item:hover {\n  background: var(--site-bg);\n}\n\n.site-locale-menu__item.is-active {\n  background: #eff6ff;\n  color: var(--site-accent);\n  font-weight: 600;\n}\n\n.site-locale-menu__name {\n  flex: 1;\n}\n\n.site-locale-menu__badge {\n  font-size: 0.75rem;\n  font-weight: 700;\n  color: var(--site-muted);\n  letter-spacing: 0.02em;\n}\n\n.site-locale-menu__item.is-active .site-locale-menu__badge {\n  color: var(--site-accent);\n}\n\n.profile-card {\n  background: var(--site-surface);\n  border: 1px solid var(--site-border);\n  border-radius: 12px;\n  padding: 1.5rem;\n}\n\n.profile-form__grid {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 1rem;\n}\n\n@media (max-width: 640px) {\n  .profile-form__grid {\n    grid-template-columns: 1fr;\n  }\n}\n\n.profile-form__full {\n  grid-column: 1 / -1;\n}\n\n.profile-form label {\n  display: flex;\n  flex-direction: column;\n  gap: 0.35rem;\n  font-size: 0.9rem;\n  color: var(--site-muted);\n}\n\n.profile-form input {\n  padding: 0.5rem 0.65rem;\n  border: 1px solid var(--site-border);\n  border-radius: 6px;\n  font: inherit;\n  color: var(--site-text);\n}\n\n.profile-form__actions {\n  display: flex;\n  gap: 0.75rem;\n  margin-top: 1.25rem;\n  flex-wrap: wrap;\n}\n\n.profile-form__actions button {\n  border: none;\n  cursor: pointer;\n}\n"
         }
       ]
     }
   ],
   "postInstall": {
+    "scripts": ["db:generate", "db:push", "db:seed"],
     "messages": [
-      "English copy: configs/locales/en/common.json (default without i18n)",
-      "Optional: irwin add i18n — then merge vi keys and wire locale in configs/application.ts",
-      "Run: pnpm db:push && pnpm db:seed",
-      "Open: GET /auth — admin@example.com / password123"
+      "i18n (en/vi) is included — use EN / VI in the header; preference saved in cookie",
+      "Header: Sign in / Register, or avatar menu (profile, change password, logout)",
+      "GET /auth — login · GET /users/new — register",
+      "GET /me — edit profile (login required)",
+      "GET /auth/:email/edit — change password",
+      "Demo login (seeded automatically): admin@example.com / password123",
+      "If you ran db:seed before auth, run again: pnpm db:seed"
     ]
   }
 }

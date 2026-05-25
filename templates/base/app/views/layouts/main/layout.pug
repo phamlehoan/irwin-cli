@@ -1,0 +1,17 @@
+doctype html
+html(lang=typeof locale !== 'undefined' ? locale : 'en')
+  head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title= title || t('header.brand')
+    link(rel="stylesheet", href="/stylesheets/mainLayout/style.css")
+    block head
+  body
+    .site-shell
+      include partials/header
+      include ../utilities/flash
+      main.site-main
+        block content
+      include partials/footer
+    // @irwin:main-layout-widgets
+    // @irwin:main-layout-scripts

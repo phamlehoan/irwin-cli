@@ -4,14 +4,32 @@ import { copyDir } from "../utils/fs";
 
 export type TemplateVars = Record<string, string>;
 
-/** Replace `{{key}}` in file contents and paths. */
-export function renderString(template: string, vars: TemplateVars): string {
+export type RenderStringOptions = {
+  /**
+   * When false, unknown `{{keys}}` are left unchanged (i18next placeholders in locale JSON).
+   * When true, unknown keys throw (scaffold files: package.json, controllers, …).
+   */
+  strict?: boolean;
+};
+
+/** Replace `{{key}}` in file contents and paths when `key` is in `vars`. */
+export function renderString(
+  template: string,
+  vars: TemplateVars,
+  options: RenderStringOptions = {},
+): string {
+  const strict = options.strict ?? true;
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    if (!(key in vars)) {
+    if (key in vars) return vars[key];
+    if (strict) {
       throw new Error(`Missing template variable: {{${key}}}`);
     }
-    return vars[key];
+    return `{{${key}}}`;
   });
+}
+
+function isLocaleConfigPath(filePath: string): boolean {
+  return /configs[/\\]locales[/\\]/i.test(filePath);
 }
 
 function shouldSkip(name: string): boolean {
@@ -29,7 +47,7 @@ function copyWithRender(
     for (const entry of fs.readdirSync(src)) {
       if (shouldSkip(entry)) continue;
       const srcChild = path.join(src, entry);
-      const destName = renderString(entry, vars);
+      const destName = renderString(entry, vars, { strict: true });
       copyWithRender(srcChild, path.join(dest, destName), vars);
     }
     return;
@@ -53,7 +71,8 @@ function copyWithRender(
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   if (isText) {
     const raw = fs.readFileSync(src, "utf8");
-    fs.writeFileSync(dest, renderString(raw, vars), "utf8");
+    const strict = !isLocaleConfigPath(dest);
+    fs.writeFileSync(dest, renderString(raw, vars, { strict }), "utf8");
   } else {
     fs.copyFileSync(src, dest);
   }

@@ -1,0 +1,41 @@
+{
+  "id": "dev-tools",
+  "version": "1.0.0",
+  "description": "Development-only /dev playground page",
+  "requires": [],
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-imports",
+          "content": "import env from \"@configs/env\";\nimport { DevRoute } from \"./dev.route\";\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-draw",
+          "content": "    if (env.appEnv === \"development\") this.path(\"/dev\", DevRoute.draw());\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./dev.controller\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "messages": [
+      "Development only: GET /dev (APP_ENV=development)",
+      "Pair with irwin add swagger for /docs links from the dev page"
+    ]
+  }
+}

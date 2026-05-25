@@ -1,0 +1,14 @@
+//- Socket.IO demo — see app/assets/javascripts/mainLayout/widgets/chat.js
+button.chat-widget-button#chat-widget-button(type="button" aria-label="Open chat demo")
+  span.chat-widget-button__icon 💬
+
+#chat-popup.chat-popup(role="dialog" aria-label="Chat demo")
+  .chat-popup__header
+    span Chat demo (Socket.IO)
+    button.chat-popup__close#close-chat-popup(type="button" aria-label="Close") ×
+  #messages.chat-popup__body
+    p.chat-popup__hint Sign in for your name on messages; guests work too.
+  .chat-popup__footer
+    form#chat-form
+      input#message-input(type="text" placeholder="Type a message…" autocomplete="off" maxlength="500")
+      button(type="submit") Send

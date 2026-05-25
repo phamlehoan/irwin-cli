@@ -1,0 +1,103 @@
+{
+  "id": "notifications",
+  "version": "1.0.0",
+  "description": "In-app notifications (DB + SSE stream + web UI)",
+  "requires": ["database", "auth"],
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:routes-imports",
+          "content": "import { NotificationRoute } from \"./notification.route\";\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "import { CurrentUserMiddleware } from \"@middlewares\";",
+          "content": "\nimport { NotificationNavMiddleware } from \"@middlewares/notificationNav.middleware\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "this.path(action(CurrentUserMiddleware));",
+          "content": "\n    this.path(action(NotificationNavMiddleware));"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:after-current-user",
+          "content": "    this.path(\"/notifications\", NotificationRoute.draw());\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  passwords Password[]",
+          "content": "\n  notifications AppNotification[]"
+        },
+        {
+          "type": "append",
+          "content": "\nmodel AppNotification {\n  id        String    @id @default(uuid()) @map(\"id\")\n  createdAt DateTime  @default(now()) @map(\"created_at\")\n  updatedAt DateTime  @updatedAt @map(\"updated_at\")\n  deleted   Boolean   @default(false) @map(\"deleted\")\n\n  userId  String    @map(\"user_id\")\n  type    String    @default(\"info\") @map(\"type\")\n  title   String    @map(\"title\")\n  message String?   @map(\"message\")\n  data    String?   @map(\"data\")\n  readAt  DateTime? @map(\"read_at\")\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([userId, deleted, readAt, createdAt])\n  @@map(\"app_notifications\")\n}\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./notifications.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/middlewares/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./notificationNav.middleware\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/views/layouts/main/partials/header.pug",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "        // @irwin:main-header-user-before-menu",
+          "content": "\n        include notification-bell"
+        }
+      ]
+    },
+    {
+      "file": "app/views/layouts/main/layout.pug",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "link(rel=\"stylesheet\", href=\"/stylesheets/mainLayout/style.css\")",
+          "content": "\n    link(rel=\"stylesheet\" href=\"/stylesheets/mainLayout/notifications.css\")"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:main-layout-scripts",
+          "content": "\n    script(src=\"/javascripts/mainLayout/notifications.js\" defer)"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push"],
+    "messages": [
+      "Bell icon in header + GET /notifications",
+      "SSE: GET /notifications/stream (live badge updates)",
+      "Send: import { notifications } from \"@lib/notifications\"",
+      "Example: await notifications.send({ userId, title: \"Hello\", message: \"...\" })"
+    ]
+  }
+}

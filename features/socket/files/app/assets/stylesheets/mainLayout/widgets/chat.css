@@ -1,0 +1,119 @@
+.chat-widget-button {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1050;
+  box-shadow: 0 4px 14px rgb(37 99 235 / 35%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.chat-widget-button:hover {
+  transform: scale(1.05);
+}
+
+.chat-widget-button__icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.chat-popup {
+  display: none;
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+  height: 28rem;
+  max-height: calc(100vh - 5rem);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  z-index: 1051;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 18%);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-popup__header {
+  background: #2563eb;
+  color: #fff;
+  padding: 0.65rem 0.85rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-popup__close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.chat-popup__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.85rem;
+  background: #f8fafc;
+  font-size: 0.88rem;
+}
+
+.chat-popup__hint {
+  margin: 0 0 0.75rem;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.chat-popup__footer {
+  padding: 0.65rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.chat-popup__footer form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-popup__footer input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+}
+
+.chat-popup__footer button[type="submit"] {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chat-msg {
+  margin-bottom: 0.65rem;
+}
+
+.chat-msg__meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: right;
+  margin-top: 0.15rem;
+}

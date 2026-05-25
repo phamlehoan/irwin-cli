@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Admin area: dashboard + user management (login required, no RBAC yet)",
   "requires": ["auth"],
+  "syncLocalesFromEnabledFeatures": true,
   "files": {
     "from": "files"
   },
@@ -23,21 +24,31 @@
       ]
     },
     {
-      "file": "app/controllers/application.controller.ts",
-      "ops": [
-        {
-          "type": "insertBefore",
-          "marker": "protected logActionCompletion()",
-          "content": "  protected requireLogin(): boolean {\n    return this.authenticateUser();\n  }\n\n"
-        }
-      ]
-    },
-    {
       "file": "app/controllers/index.ts",
       "ops": [
         {
           "type": "append",
           "content": "export * from \"./admin\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/views/layouts/main/partials/header.pug",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:main-header-nav-admin",
+          "content": "\n      - const __adminPerms = currentUser && currentUser.permissions\n      - const __showAdmin = currentUser && (!Array.isArray(__adminPerms) || __adminPerms.some((p) => ['USM::READ', 'RAP::READ', 'AM::READ'].includes(p)))\n      if __showAdmin\n        a.site-nav__link(href=\"/admin\")= t('header.admin')"
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/en/common.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"home\": \"Home\",",
+          "content": "\n    \"admin\": \"Admin\","
         }
       ]
     }
@@ -46,7 +57,7 @@
     "messages": [
       "Open: GET /admin (after login at /auth)",
       "Seed user: admin@example.com / password123",
-      "RBAC (roles/features) is not included — add in a later pack or extend from irwin-framework"
+      "RBAC: irwin add admin-rbac"
     ]
   }
 }

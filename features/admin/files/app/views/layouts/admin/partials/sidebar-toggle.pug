@@ -1,0 +1,8 @@
+include icons
+
+button.admin-topbar__sidebar-toggle.admin-sidebar__toggle(type="button" aria-label=t('sidebar.collapse') aria-expanded="true" aria-controls="adminSidebar" data-label-collapse=t('sidebar.collapse') data-label-expand=t('sidebar.expand') data-label-menu=t('sidebar.menu') data-label-close=t('sidebar.close_menu'))
+  span.admin-topbar__sidebar-toggle-icon.admin-topbar__sidebar-toggle-icon--menu(aria-hidden="true")
+    svg.admin-topbar__toggle-svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75")
+      path(d="M4 6h16M4 12h16M4 18h16")
+  span.admin-topbar__sidebar-toggle-icon.admin-topbar__sidebar-toggle-icon--desktop(aria-hidden="true")
+    +iconChevron()

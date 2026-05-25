@@ -10,12 +10,21 @@ export type AddOptions = {
   skipInstall?: boolean;
 };
 
+const RETIRED_FEATURES: Record<string, string> = {
+  i18n: 'i18n is built into "auth". Run: irwin add auth (use --force to refresh).',
+};
+
 export async function runAdd(
   featureId: string,
   options: AddOptions = {},
 ): Promise<void> {
+  const retired = RETIRED_FEATURES[featureId];
+  if (retired) {
+    throw new Error(retired);
+  }
+
   const projectRoot = resolveIrwinRoot();
-  const manifest = loadManifest(featureId);
+  const manifest = loadManifest(featureId, projectRoot);
 
   log.info(
     options.dryRun

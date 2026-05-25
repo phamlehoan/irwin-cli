@@ -1,0 +1,51 @@
+extends ../../layouts/admin/layout
+
+block content
+  include ../partials/rbacCan
+  .admin-page
+    header.admin-page__head
+      h1.admin-page__title= t('admin.users')
+      .admin-page__actions
+        if rbacCan('USM::CREATE')
+          a.admin-btn.admin-btn-primary(href="/admin/users/new")= t('admin.new_user')
+
+    .admin-panel
+      .admin-panel__toolbar
+        form(method="get" action="/admin/users")
+          input(type="search" name="search" placeholder=t('admin.search_placeholder') value=search)
+          select(name="filterStatus" onchange="this.form.submit()")
+            option(value="")= t('admin.all_status')
+            option(value="ACTIVE" selected=filterStatus==='ACTIVE') ACTIVE
+            option(value="INACTIVE" selected=filterStatus==='INACTIVE') INACTIVE
+            option(value="PENDING" selected=filterStatus==='PENDING') PENDING
+          button.admin-btn.admin-btn-primary(type="submit")= t('admin.search')
+
+      if users.length
+        .admin-table-wrap
+          table.admin-table
+            thead
+              tr
+                th
+                  a(href=buildSortUrl('email'))= t('admin.email')
+                th
+                  a(href=buildSortUrl('firstName'))= t('admin.name')
+                th
+                  a(href=buildSortUrl('status'))= t('admin.status')
+                th.admin-table__actions= t('admin.actions')
+            tbody
+              each u in users
+                tr
+                  td
+                    a.admin-table__link(href=`/admin/users/${u.id}`)= u.email
+                  td= `${u.firstName} ${u.lastName}`
+                  td= u.status
+                  td.admin-table__actions
+                    if rbacCan('USM::UPDATE')
+                      a.admin-btn(href=`/admin/users/${u.id}/edit`)= t('admin.edit')
+                    if rbacCan('USM::DELETE')
+                      form.admin-inline-form(method="post" action=`/admin/users/${u.id}?_method=DELETE` onsubmit=`return confirm("${t('admin.delete_confirm')}")`)
+                        button.admin-btn.admin-btn-danger(type="submit")= t('admin.delete')
+        nav.admin-pagination
+          span Page #{page} — #{total} total
+      else
+        p.admin-empty-hint(style="padding:1rem")= t('admin.no_users') || 'No users'
