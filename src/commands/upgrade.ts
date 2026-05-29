@@ -19,7 +19,7 @@ function readDefaultTsRailsVersion(): string {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(getIrwinCliRoot(), "package.json"), "utf8"),
   ) as { irwin?: { defaultTsRailsVersion?: string } };
-  return pkg.irwin?.defaultTsRailsVersion ?? "1.1.0";
+  return pkg.irwin?.defaultTsRailsVersion ?? "1.1.3";
 }
 
 export async function runUpgrade(options: UpgradeOptions = {}): Promise<void> {

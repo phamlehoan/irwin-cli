@@ -1,7 +1,7 @@
 import { ApplicationController } from "@controllers/application.controller";
 import { appCodePath, appPath } from "@lib/utils/path";
 import express from "express";
-import { MiddlewareFactory, RailsApplication, setSwaggerDocument } from "ts-rails";
+import { MiddlewareFactory, RailsApplication } from "ts-rails";
 import env from "./env";
 import { initializeCache, initializeLogger } from "./initializers";
 import {
@@ -25,11 +25,6 @@ export class Application extends RailsApplication {
   }
 
   protected runInitializers() {
-    setSwaggerDocument({
-      openapi: "3.0.0",
-      info: { title: "{{appTitle}}", version: "0.1.0" },
-      paths: {},
-    });
     initializeLogger();
     initializeCache();
     // @irwin:initializers

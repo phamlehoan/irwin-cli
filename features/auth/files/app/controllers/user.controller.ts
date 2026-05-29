@@ -1,8 +1,8 @@
 import { FlashType } from "@configs/enum";
-import models from "@models";
-import { PasswordType, UserStatus } from "@models/enums";
+import { isMailDeliveryConfigured } from "@lib/utils/mailConfig";
+import { AuthRegisterService } from "@services/auth/authRegister.service";
 import { RegisterUserValidator } from "@validators/auth.validator";
-import { Security } from "ts-rails";
+import { UnprocessableEntityError } from "ts-rails";
 import { ApplicationController } from "./application.controller";
 
 export class UserController extends ApplicationController {
@@ -10,7 +10,10 @@ export class UserController extends ApplicationController {
     if (this.currentUser) {
       return this.redirect("/");
     }
-    this.render("user.view/new", { title: this.t("users.register_title") });
+    this.render("user.view/new", {
+      title: this.t("users.register_title"),
+      mailActivationRequired: isMailDeliveryConfigured(),
+    });
   }
 
   async create() {
@@ -26,41 +29,41 @@ export class UserController extends ApplicationController {
       "passwordConfirmation",
     );
 
-    const email = data.email.trim().toLowerCase();
-    if (data.password !== data.passwordConfirmation) {
-      this.flash(FlashType.Errors, { msg: this.t("flash.password_mismatch") });
-      return this.redirect("/users/new");
-    }
+    try {
+      const result = await new AuthRegisterService().execute(data);
 
-    const existing = await models.user.findFirst({
-      where: { email, deleted: false },
-    });
-    if (existing) {
-      this.flash(FlashType.Errors, {
-        msg: this.t("flash.registration_email_exists"),
-      });
-      return this.redirect("/users/new");
-    }
-
-    const hashed = await Security.hashPassword(data.password);
-    await models.user.create({
-      data: {
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        email,
-        status: UserStatus.ACTIVE,
-        passwords: {
-          create: {
-            password: hashed,
-            type: PasswordType.PASSWORD,
+      if (result.activationRequired) {
+        this.flash(
+          result.emailSent ? FlashType.Success : FlashType.Errors,
+          {
+            msg: result.emailSent
+              ? this.t("flash.registration_invite_sent", { email: result.email })
+              : this.t("flash.registration_invite_failed", {
+                  email: result.email,
+                }),
           },
-        },
-      },
-    });
+        );
+      } else {
+        this.flash(FlashType.Success, {
+          msg: this.t("flash.registration_success", { email: result.email }),
+        });
+      }
+    } catch (e) {
+      if (e instanceof UnprocessableEntityError) {
+        if (e.message === "REGISTRATION_EMAIL_EXISTS") {
+          this.flash(FlashType.Errors, {
+            msg: this.t("flash.registration_email_exists"),
+          });
+          return this.redirect("/users/new");
+        }
+        if (e.message === "PASSWORD_MISMATCH") {
+          this.flash(FlashType.Errors, { msg: this.t("flash.password_mismatch") });
+          return this.redirect("/users/new");
+        }
+      }
+      throw e;
+    }
 
-    this.flash(FlashType.Success, {
-      msg: this.t("flash.registration_success", { email }),
-    });
     this.redirect("/auth");
   }
 }

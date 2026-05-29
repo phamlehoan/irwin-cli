@@ -16,6 +16,7 @@ model User {
   firstName String @map("first_name")
   lastName  String @map("last_name")
   email     String @unique @map("email")
+  // @irwin:user-profile-fields
   status    String @default("ACTIVE") @map("status")
 
   passwords Password[]

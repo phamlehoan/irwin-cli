@@ -1,32 +1,36 @@
-import env from "@configs/env";
 import * as jobs from "@jobs";
-import { getJobAdapter } from "@lib/utils/jobs";
-import cron from "node-cron";
+import {
+  startAllCronJobsFromDatabase,
+  type CronJobClass,
+} from "@lib/jobs/cronRunner";
+import {
+  listJobSchedules,
+  syncJobSchedulesFromRegistry,
+} from "@lib/jobs/jobSchedule";
+import { purgeCompletedBackgroundJobs } from "@lib/jobs/jobStore";
+import { getJobAdapter } from "@lib";
 import { RailsApplication } from "ts-rails";
 
-let cronStarted = false;
+let isCronStarted = false;
 
-async function startCronJobs(): Promise<void> {
-  if (cronStarted) return;
-  if (env.appEnv !== "development" && env.appEnv !== "production") return;
-
-  for (const Klass of Object.values(jobs) as Array<{
-    cron?: string;
-    new (): { perform: (...a: unknown[]) => Promise<void> };
-  }>) {
-    if (typeof Klass !== "function" || !Klass.cron) continue;
-    cron.schedule(Klass.cron, () => {
-      void new Klass().perform();
-    });
-  }
-
-  cronStarted = true;
-  RailsApplication.loggerAdapter?.info("[jobs] Cron schedules registered");
+export function getJobClasses(): CronJobClass[] {
+  return Object.values(jobs) as CronJobClass[];
 }
 
-export function initializeJobs(): void {
-  RailsApplication.jobClasses = Object.values(jobs) as never[];
-  (RailsApplication as { jobAdapter?: unknown }).jobAdapter = getJobAdapter();
+async function startCronJobs() {
+  if (isCronStarted) return;
+
+  await syncJobSchedulesFromRegistry();
+  const rows = await listJobSchedules();
+  await startAllCronJobsFromDatabase(rows);
+
+  isCronStarted = true;
+  RailsApplication.loggerAdapter?.info("[Jobs] Cron schedules started (from database)");
+}
+
+export function initializeJobs() {
+  RailsApplication.jobClasses = getJobClasses() as never[];
+  RailsApplication.jobAdapter = getJobAdapter();
 
   if (
     !process.env.LAMBDA_TASK_ROOT &&
@@ -34,6 +38,9 @@ export function initializeJobs(): void {
     !process.env.IS_OFFLINE &&
     !process.env.IRWIN_CONSOLE
   ) {
-    void startCronJobs();
+    void (async () => {
+      await purgeCompletedBackgroundJobs();
+      await startCronJobs();
+    })();
   }
 }

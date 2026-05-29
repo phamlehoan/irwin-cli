@@ -511,7 +511,7 @@ Sau mỗi extract: `irwin new tmp && irwin add <id> && diff` so với subset fra
 - [x] `irwin upgrade` — bump `ts-rails` + registry
 - [x] `irwin add storage`, `jobs`, `socket`, `vue`
 - [x] `irwin add turso`, `netlify`, `serverless`
-- [x] `irwin add ai` (Gemini — `/api/v1/ai/assistant/chat`)
+- [x] `irwin add ai` (Gemini — `/api/v1/ai/chat`)
 
 ---
 

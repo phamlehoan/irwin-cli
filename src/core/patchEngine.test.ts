@@ -30,6 +30,21 @@ describe("patchEngine", () => {
     assert.equal(applied, false);
   });
 
+  it("skipIfContains prevents duplicate schema fields", () => {
+    const schema = `  email String @unique
+  phoneNumber String?
+  status String
+`;
+    const { content, applied } = applyOp(schema, {
+      type: "insertBefore",
+      marker: "  status String",
+      skipIfContains: "phoneNumber",
+      content: "\n  phoneNumber String?\n",
+    });
+    assert.equal(applied, false);
+    assert.equal(content, schema);
+  });
+
   it("bootstrapPatchTargetContent for lib/index.ts", () => {
     const content = bootstrapPatchTargetContent("lib/index.ts", []);
     assert.match(content ?? "", /@irwin:lib-exports/);
@@ -62,6 +77,43 @@ describe("patchEngine", () => {
     assert.match(written, /@irwin:lib-exports/);
     assert.match(written, /utils\/storage/);
     fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it("skipIfContains prevents duplicate ApiV1 mount when auth-api then ai", () => {
+    let apiIndex = `import { checkReadiness } from "@configs/plugins/health";
+import { ApiV1Route } from "./v1";
+
+export class ApiRoute extends RailsRoute {
+  public draw() {
+    this.get("/health", async (_req, res) => {
+      res.status(200).json({});
+    });
+
+    this.path("/v1", ApiV1Route.draw());
+  }
+}
+`;
+    const aiApiPatches = [
+      {
+        type: "insertAfter" as const,
+        marker: "import { checkReadiness } from \"@configs/plugins/health\";",
+        skipIfContains: "ApiV1Route",
+        content: '\nimport { ApiV1Route } from "./v1";',
+      },
+      {
+        type: "insertBefore" as const,
+        marker: "  }\n}",
+        skipIfContains: "ApiV1Route.draw()",
+        content: '\n    this.path("/v1", ApiV1Route.draw());',
+      },
+    ];
+    for (const op of aiApiPatches) {
+      const next = applyOp(apiIndex, op);
+      apiIndex = next.content;
+      assert.equal(next.applied, false);
+    }
+    const matches = apiIndex.match(/ApiV1Route\.draw\(\)/g);
+    assert.equal(matches?.length, 1);
   });
 
   it("applyPatches creates missing lib/index.ts then patches", () => {

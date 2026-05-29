@@ -51,6 +51,15 @@
       ]
     },
     {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./utils/mailConfig\";\n"
+        }
+      ]
+    },
+    {
       "file": "tsconfig.json",
       "ops": [
         {

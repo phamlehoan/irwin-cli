@@ -61,7 +61,7 @@ program
   .option(
     "--ts-rails-version <version>",
     "ts-rails semver",
-    pkg.irwin?.defaultTsRailsVersion ?? "1.1.0",
+    pkg.irwin?.defaultTsRailsVersion ?? "1.1.3",
   )
   .option("--skip-install", "Do not install dependencies")
   .option("--skip-dev", "Install only; do not start the dev server")

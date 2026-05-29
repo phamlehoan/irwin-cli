@@ -43,10 +43,13 @@ npm publish --dry-run
 
 ## After publish
 
-Users install with:
+Users can install globally or create a project in one command:
 
 ```bash
+npm install -g irwin-cli
+irwin new my-app
+
+# or without global install:
 npm create irwin@latest my-app
-# or
-npx irwin-cli add auth-oauth
+npx irwin add auth-oauth
 ```

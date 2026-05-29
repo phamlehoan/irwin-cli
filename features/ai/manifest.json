@@ -1,7 +1,7 @@
 {
   "id": "ai",
   "version": "1.0.0",
-  "description": "Google Gemini chat API — POST /api/v1/ai/assistant/chat",
+  "description": "Google Gemini chat API — POST /api/v1/ai/chat",
   "requires": ["api"],
   "npm": {
     "dependencies": {
@@ -28,12 +28,37 @@
         {
           "type": "insertAfter",
           "marker": "import { checkReadiness } from \"@configs/plugins/health\";",
+          "skipIfContains": "ApiV1Route",
           "content": "\nimport { ApiV1Route } from \"./v1\";"
         },
         {
+          "type": "insertBefore",
+          "marker": "  }\n}",
+          "skipIfContains": "ApiV1Route.draw()",
+          "content": "\n    this.path(\"/v1\", ApiV1Route.draw());"
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/api/v1/index.ts",
+      "ops": [
+        {
           "type": "insertAfter",
-          "marker": "res.status(code).json(ApiResponse.ok(status));",
-          "content": "\n\n    this.path(\"/v1\", ApiV1Route.draw());"
+          "marker": "import { AuthRoute } from \"./auth\";",
+          "skipIfContains": "ApiV1AiAssistantRoute",
+          "content": "\nimport { ApiV1AiAssistantRoute } from \"./aiAssistant.route\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "import { action, RailsRoute } from \"ts-rails\";",
+          "skipIfContains": "ApiV1AiAssistantRoute",
+          "content": "\nimport { ApiV1AiAssistantRoute } from \"./aiAssistant.route\";"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  }\n}",
+          "skipIfContains": "/ai\", ApiV1AiAssistantRoute",
+          "content": "\n    this.path(\"/ai\", ApiV1AiAssistantRoute.draw());"
         }
       ]
     },
@@ -60,7 +85,7 @@
   "postInstall": {
     "messages": [
       "Set GOOGLE_AI_API_KEY in .env (Google AI Studio)",
-      "POST /api/v1/ai/assistant/chat — body: { \"messages\": [{ \"role\": \"user\", \"content\": \"Hello\" }] }",
+      "POST /api/v1/ai/chat — Bearer required; body: { \"messages\": [{ \"role\": \"user\", \"content\": \"Hello\" }] }",
       "Requires irwin add api first"
     ]
   }

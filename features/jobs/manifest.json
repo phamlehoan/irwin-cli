@@ -1,11 +1,11 @@
 {
   "id": "jobs",
-  "version": "1.0.0",
-  "description": "Background jobs: node-cron schedules + optional BullMQ (Redis)",
-  "requires": [],
+  "version": "2.1.0",
+  "description": "Background jobs only: node-cron + database queue (default) or BullMQ/Redis (JOBS_USE_REDIS)",
+  "requires": ["database"],
   "npm": {
     "dependencies": {
-      "bullmq": "^5.70.4",
+      "bullmq": "^5.73.3",
       "node-cron": "^4.2.1",
       "ioredis": "^5.10.0"
     },
@@ -22,6 +22,11 @@
       "ops": [
         {
           "type": "insertAfter",
+          "marker": "import { Route } from \"./routes\";",
+          "content": "\nimport { setupJobWorkers } from \"@lib/jobs/setupWorkers\";"
+        },
+        {
+          "type": "insertAfter",
           "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
           "content": "\nimport { initializeJobs } from \"./initializers\";"
         },
@@ -29,6 +34,11 @@
           "type": "insertAfter",
           "marker": "// @irwin:initializers",
           "content": "\n    initializeJobs();"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  protected setupViewEngine() {",
+          "content": "  protected startBackgroundProcessor() {\n    setupJobWorkers();\n  }\n\n"
         }
       ]
     },
@@ -47,7 +57,17 @@
         {
           "type": "insertBefore",
           "marker": "};",
-          "content": "  redisHost: process.env.REDIS_HOST || \"127.0.0.1\",\n  redisPort: parseInt(process.env.REDIS_PORT || \"6379\", 10),\n"
+          "content": "  jobsUseRedis: process.env.JOBS_USE_REDIS === \"true\",\n  redisHost: process.env.REDIS_HOST || \"127.0.0.1\",\n  redisPort: parseInt(process.env.REDIS_PORT || \"6379\", 10),\n"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:lib-exports",
+          "content": "\nexport * from \"./utils/jobs\";\nexport * from \"./jobs\";"
         }
       ]
     },
@@ -62,19 +82,31 @@
       ]
     },
     {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\nmodel JobSchedule {\n  id        String   @id @default(uuid()) @map(\"id\")\n  jobClass  String   @unique @map(\"job_class\")\n  cron      String   @map(\"cron\")\n  paused    Boolean  @default(false) @map(\"paused\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n  @@map(\"job_schedules\")\n}\n\nmodel BackgroundJob {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  jobClass    String   @map(\"job_class\")\n  args        String?  @map(\"args\")\n  status      String   @default(\"pending\") @map(\"status\")\n  queue       String   @default(\"database\") @map(\"queue\")\n  source      String   @default(\"manual\") @map(\"source\")\n  externalId  String?  @map(\"external_id\")\n  attempts    Int      @default(0) @map(\"attempts\")\n  maxAttempts Int      @default(3) @map(\"max_attempts\")\n  runAt       DateTime @default(now()) @map(\"run_at\")\n  startedAt   DateTime? @map(\"started_at\")\n  completedAt DateTime? @map(\"completed_at\")\n  failedAt    DateTime? @map(\"failed_at\")\n  lastError   String?  @map(\"last_error\")\n  @@index([status, runAt])\n  @@index([jobClass, createdAt])\n  @@map(\"background_jobs\")\n}\n"
+        }
+      ]
+    },
+    {
       "file": ".env.example",
       "ops": [
         {
           "type": "append",
-          "content": "\n# Jobs (irwin add jobs)\nREDIS_HOST=127.0.0.1\nREDIS_PORT=6379\n"
+          "content": "\n# Jobs (irwin add jobs)\n# JOBS_USE_REDIS=false\n# JOBS_USE_REDIS=true\n# REDIS_HOST=127.0.0.1\n# REDIS_PORT=6379\n"
         }
       ]
     }
   ],
   "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push"],
     "messages": [
-      "Cron: jobs with static `cron` field auto-start (see app/jobs/heartbeat.job.ts)",
-      "BullMQ: start Redis, enqueue via RailsApplication.jobAdapter",
+      "Job runtime only — no admin UI (use irwin add admin-rbac for /admin/jobs).",
+      "Default: database queue. Set JOBS_USE_REDIS=true + Redis for BullMQ.",
+      "Cron: static `cron` on job classes (see app/jobs/heartbeat.job.ts).",
       "Generate: pnpm exec irwin g job MyJob"
     ]
   }

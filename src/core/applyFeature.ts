@@ -5,6 +5,11 @@ import type { FeatureManifest } from "./manifest";
 import { featureFilesDir, resolveFeatureSource } from "./featureSource";
 import { applyPatches } from "./patchEngine";
 import {
+  getJobsInstallContext,
+  matchesWhen,
+  resolveFeatureManifest,
+} from "./installContext";
+import {
   isFeatureEnabled,
   readRegistry,
   writeRegistry,
@@ -13,6 +18,7 @@ import {
 import { copyLocalesFromEnabledFeatures } from "./localeSync";
 import { collectPatchBackups } from "./removeFeature";
 import { mergePackageJsonDeps } from "./template";
+import { syncAuthStackFiles } from "./authStackSync";
 import { syncHomeFeatures } from "./syncHomeFeatures";
 
 export type ApplyFeatureOptions = {
@@ -88,6 +94,8 @@ export function applyFeature(
   options: ApplyFeatureOptions = {},
 ): ApplyFeatureResult {
   const { dryRun = false, force = false } = options;
+  const resolved = resolveFeatureManifest(manifest, projectRoot);
+  const { installContext } = resolved;
   const registry = readRegistry(projectRoot);
 
   if (isFeatureEnabled(registry, manifest.id) && !force) {
@@ -95,23 +103,45 @@ export function applyFeature(
     return { copied: [], patchResults: [] };
   }
 
-  validateFeatureRequirements(manifest, projectRoot);
+  validateFeatureRequirements(resolved, projectRoot);
+
+  if (manifest.id === "admin-rbac") {
+    if (installContext.jobsEnabled) {
+      const mode =
+        installContext.jobsQueueMode === "redis"
+          ? "BullMQ + Redis (JOBS_USE_REDIS=true)"
+          : "database queue (JOBS_USE_REDIS=false or unset)";
+      log.info(`  jobs detected — admin UI will include /admin/jobs (${mode})`);
+    } else {
+      log.warn(
+        "  jobs not detected — skipping /admin/jobs UI. Run `irwin add jobs` first, then `irwin add admin-rbac --force`.",
+      );
+    }
+  }
 
   const source = resolveFeatureSource(manifest.id, projectRoot);
-  const filesFrom = manifest.files?.from ?? "files";
-  const filesSrc = featureFilesDir(source, filesFrom);
   const copied: string[] = [];
 
-  if (fs.existsSync(filesSrc)) {
-    copied.push(
-      ...copyFeatureFiles(
-        filesSrc,
-        projectRoot,
-        dryRun,
-        force,
-        manifest.files?.overwrite ?? [],
-      ),
-    );
+  const copyFrom = (
+    from: string,
+    overwrite: string[] = [],
+  ) => {
+    const filesSrc = featureFilesDir(source, from);
+    if (fs.existsSync(filesSrc)) {
+      copied.push(
+        ...copyFeatureFiles(filesSrc, projectRoot, dryRun, force, overwrite),
+      );
+    }
+  };
+
+  if (resolved.files?.from) {
+    copyFrom(resolved.files.from, resolved.files.overwrite ?? []);
+  }
+
+  for (const set of resolved.conditionalFiles ?? []) {
+    if (!matchesWhen(set.when, installContext)) continue;
+    log.info(`  conditional files: ${set.from}`);
+    copyFrom(set.from, set.overwrite ?? []);
   }
 
   if (manifest.syncLocalesFromEnabledFeatures) {
@@ -125,14 +155,18 @@ export function applyFeature(
     );
   }
 
+  if (["auth", "auth-api", "admin-rbac"].includes(manifest.id)) {
+    copied.push(...syncAuthStackFiles(projectRoot, dryRun, manifest.id));
+  }
+
   const patchBackups =
-    manifest.patches && manifest.patches.length > 0
-      ? collectPatchBackups(projectRoot, manifest.patches)
+    resolved.patches && resolved.patches.length > 0
+      ? collectPatchBackups(projectRoot, resolved.patches)
       : [];
 
   const patchResults =
-    manifest.patches && manifest.patches.length > 0
-      ? applyPatches(projectRoot, manifest.patches, dryRun)
+    resolved.patches && resolved.patches.length > 0
+      ? applyPatches(projectRoot, resolved.patches, dryRun)
       : [];
 
   for (const pr of patchResults) {

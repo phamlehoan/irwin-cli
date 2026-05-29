@@ -44,6 +44,8 @@
     "old_password_required": "Nhập mật khẩu hiện tại",
     "registration_email_exists": "Email này đã được sử dụng",
     "registration_success": "Đã tạo tài khoản. Bạn có thể đăng nhập.",
+    "registration_invite_sent": "Đã tạo tài khoản {{email}}. Kiểm tra email để kích hoạt.",
+    "registration_invite_failed": "Đã tạo tài khoản {{email}} nhưng không gửi được email kích hoạt.",
     "profile_updated": "Đã lưu hồ sơ"
   },
   "auth": {
@@ -64,7 +66,8 @@
     "register_title": "Tạo tài khoản",
     "first_name": "Tên",
     "last_name": "Họ",
-    "create_account": "Tạo tài khoản"
+    "create_account": "Tạo tài khoản",
+    "register_email_hint": "Chúng tôi sẽ gửi email kích hoạt tài khoản trước khi bạn đăng nhập."
   },
   "profile": {
     "title": "Hồ sơ của tôi",

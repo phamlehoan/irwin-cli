@@ -1,7 +1,7 @@
 /**
  * Smoke E2E: irwin new → add database/session/auth → doctor → optional g scaffold
  * Run from irwin-cli after build. App is created under VIZ Framework/.tmp/e2e-smoke
- * so template deps file:../irwin-rails resolve and the repo root stays clean.
+ * so the repo root stays clean (ts-rails resolved from npm).
  */
 import { execSync } from "node:child_process";
 import fs from "node:fs";

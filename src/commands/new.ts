@@ -53,7 +53,7 @@ export async function runNew(
   const tsRailsVersion =
     options.tsRailsVersion ??
     cliPkg.irwin?.defaultTsRailsVersion ??
-    "1.1.0";
+    "1.1.3";
 
   const pm = options.packageManager ?? "pnpm";
 

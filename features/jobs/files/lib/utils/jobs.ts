@@ -1,5 +1,11 @@
 import env from "@configs/env";
 import { Queue } from "bullmq";
+import {
+  attachExternalId,
+  createJobRecord,
+  parseJobArgs,
+} from "../jobs/jobStore";
+import { JobQueue, JobSource } from "../jobs/types";
 
 export interface JobAdapter {
   enqueue(jobName: string, args: unknown[]): Promise<void>;
@@ -10,7 +16,7 @@ export class BullMQJobAdapter implements JobAdapter {
 
   private getQueue(): Queue {
     if (!this.queue) {
-      this.queue = new Queue("irwin-jobs", {
+      this.queue = new Queue("rails-jobs", {
         connection: {
           host: env.redisHost,
           port: env.redisPort,
@@ -22,20 +28,58 @@ export class BullMQJobAdapter implements JobAdapter {
   }
 
   async enqueue(jobName: string, args: unknown[]): Promise<void> {
-    await this.getQueue().add(jobName, args, { removeOnComplete: true });
+    const record = await createJobRecord({
+      jobClass: jobName,
+      args,
+      queue: JobQueue.Bullmq,
+      source: JobSource.Manual,
+    });
+
+    await this.enqueueRecord(record.id, jobName, args);
+  }
+
+  async enqueueRecord(
+    recordId: string,
+    jobName: string,
+    args: unknown[],
+  ): Promise<void> {
+    const bullJob = await this.getQueue().add(
+      jobName,
+      { recordId, args },
+      { removeOnComplete: true, attempts: 3 },
+    );
+
+    if (bullJob.id) {
+      await attachExternalId(recordId, String(bullJob.id));
+    }
   }
 }
 
-class InlineJobAdapter implements JobAdapter {
-  async enqueue(_jobName: string, _args: unknown[]): Promise<void> {
+export class DatabaseJobAdapter implements JobAdapter {
+  async enqueue(jobName: string, args: unknown[]): Promise<void> {
+    await createJobRecord({
+      jobClass: jobName,
+      args,
+      queue: JobQueue.Database,
+      source: JobSource.Manual,
+    });
+
+    const { scheduleDatabaseJobProcessing } = await import(
+      "../jobs/databaseWorker"
+    );
+    scheduleDatabaseJobProcessing();
   }
 }
 
-let adapter: JobAdapter;
+let jobAdapterInstance: JobAdapter;
 
-export function getJobAdapter(): JobAdapter {
-  if (!adapter) {
-    adapter = new BullMQJobAdapter();
+export const getJobAdapter = (): JobAdapter => {
+  if (!jobAdapterInstance) {
+    jobAdapterInstance = env.jobsUseRedis
+      ? new BullMQJobAdapter()
+      : new DatabaseJobAdapter();
   }
-  return adapter;
-}
+  return jobAdapterInstance;
+};
+
+export { parseJobArgs };

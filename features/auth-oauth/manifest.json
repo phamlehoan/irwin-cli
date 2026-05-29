@@ -50,6 +50,8 @@
 
           "marker": "  avatarUrl   String? @map(\"avatar_url\")",
 
+          "skipIfContains": "googleId",
+
           "content": "\n  googleId  String? @map(\"google_id\")"
 
         }

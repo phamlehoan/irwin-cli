@@ -1,7 +1,7 @@
 {
   "id": "admin-rbac",
-  "version": "1.2.0",
-  "description": "Feature-based RBAC (AM/USM/RAP) — route guards, seed, admin UI + Vue permission matrix",
+  "version": "1.4.0",
+  "description": "Feature-based RBAC (AM/USM/RAP) — optional JM job admin when jobs pack + env detected",
   "requires": ["admin", "database", "vue"],
   "npm": {
     "dependencies": {
@@ -13,7 +13,6 @@
     "from": "files",
     "overwrite": [
       "app/middlewares/application.middleware.ts",
-      "app/middlewares/currentUser.middleware.ts",
       "configs/routes/admin/index.ts",
       "configs/routes/admin/adminUser.route.ts",
       "configs/routes/admin/adminRole.route.ts",
@@ -21,6 +20,18 @@
       "app/views/layouts/admin/layout.pug"
     ]
   },
+  "conditionalFiles": [
+    {
+      "from": "files-jobs",
+      "when": { "jobsEnabled": true },
+      "overwrite": [
+        "configs/routes/admin/index.ts",
+        "configs/db/seeders/features.ts",
+        "app/controllers/admin/adminJob.controller.ts",
+        "configs/routes/admin/adminJob.route.ts"
+      ]
+    }
+  ],
   "patches": [
     {
       "file": "configs/db/schema.prisma",
@@ -43,6 +54,17 @@
           "type": "insertBefore",
           "marker": "/** Flash categories",
           "content": "export enum Feature {\n  AdministrationManagement = \"AM\",\n  UserManagement = \"USM\",\n  RoleAndPermission = \"RAP\",\n}\n\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/enum/index.ts",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "RoleAndPermission = \"RAP\",",
+          "content": "\n  JobManagement = \"JM\","
         }
       ]
     },
@@ -75,11 +97,31 @@
       ]
     },
     {
+      "file": "app/controllers/index.ts",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./admin/adminJob.controller\";\n"
+        }
+      ]
+    },
+    {
       "file": "app/controllers/admin/index.ts",
       "ops": [
         {
           "type": "append",
           "content": "export * from \"./adminRole.controller\";\nexport * from \"./adminFeature.controller\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/admin/index.ts",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./adminJob.controller\";\n"
         }
       ]
     },
@@ -129,6 +171,49 @@
       ]
     },
     {
+      "file": "app/views/layouts/admin/partials/sidebar.pug",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "span.admin-sidebar__label= t('sidebar.features')",
+          "content": "\n        if can('JM::READ')\n          a.admin-sidebar__link(href=\"/admin/jobs\" class=activeMenu === 'jobs' ? 'is-active' : '' title=t('sidebar.jobs'))\n            span.admin-sidebar__icon(aria-hidden=\"true\")\n              +iconFeatures()\n            span.admin-sidebar__label= t('sidebar.jobs')"
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/en/admin.json",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_users\": \"Back to users\"",
+          "content": ",\n    \"job_management\": \"Background Jobs\",\n    \"job_search_placeholder\": \"Search by job class or error\",\n    \"job_class\": \"Job class\",\n    \"job_details\": \"Job details\",\n    \"job_arguments\": \"Arguments\",\n    \"job_retried\": \"Job queued for retry\",\n    \"job_deleted\": \"Job record deleted\",\n    \"retry_job\": \"Retry\",\n    \"delete_job_confirm\": \"Delete this job record?\",\n    \"no_jobs\": \"No jobs found\",\n    \"all_queues\": \"All queues\",\n    \"source\": \"Source\",\n    \"attempts\": \"Attempts\",\n    \"created_at\": \"Created\",\n    \"started_at\": \"Started\",\n    \"completed_at\": \"Completed\",\n    \"failed_at\": \"Failed\",\n    \"last_error\": \"Last error\",\n    \"external_id\": \"External ID\",\n    \"back_to_jobs\": \"Back to jobs\",\n    \"jobs_mode_redis\": \"Queue: BullMQ + Redis (JOBS_USE_REDIS=true)\",\n    \"jobs_mode_database\": \"Queue: database (default). Set JOBS_USE_REDIS=true for Redis.\",\n    \"job_status_pending\": \"Pending\",\n    \"job_status_processing\": \"Processing\",\n    \"job_status_completed\": \"Completed\",\n    \"job_status_failed\": \"Failed\",\n    \"queue_database\": \"Database\",\n    \"queue_bullmq\": \"BullMQ\",\n    \"job_source_manual\": \"Manual\",\n    \"job_source_cron\": \"Scheduled\",\n    \"delete\": \"Delete\",\n    \"jobs_pagination\": \"Page {{page}} / {{totalPages}} ({{total}})\",\n    \"pagination_prev\": \"Previous\",\n    \"pagination_next\": \"Next\""
+        },
+        {
+          "type": "insertAfter",
+          "marker": "\"features\": \"Features\"",
+          "content": ",\n    \"jobs\": \"Background Jobs\""
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/vi/admin.json",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_users\": \"Quay lại danh sách\"",
+          "content": ",\n    \"job_management\": \"Job nền\",\n    \"job_search_placeholder\": \"Tìm theo tên job hoặc lỗi\",\n    \"job_class\": \"Job class\",\n    \"job_details\": \"Chi tiết job\",\n    \"job_arguments\": \"Tham số\",\n    \"job_retried\": \"Đã xếp hàng chạy lại job\",\n    \"job_deleted\": \"Đã xóa bản ghi job\",\n    \"retry_job\": \"Chạy lại\",\n    \"delete_job_confirm\": \"Xóa bản ghi job này?\",\n    \"no_jobs\": \"Chưa có job\",\n    \"all_queues\": \"Tất cả queue\",\n    \"source\": \"Nguồn\",\n    \"attempts\": \"Lần thử\",\n    \"created_at\": \"Tạo lúc\",\n    \"started_at\": \"Bắt đầu\",\n    \"completed_at\": \"Hoàn thành\",\n    \"failed_at\": \"Thất bại\",\n    \"last_error\": \"Lỗi cuối\",\n    \"external_id\": \"External ID\",\n    \"back_to_jobs\": \"Quay lại danh sách job\",\n    \"jobs_mode_redis\": \"Queue: BullMQ + Redis (JOBS_USE_REDIS=true)\",\n    \"jobs_mode_database\": \"Queue: database (mặc định). Đặt JOBS_USE_REDIS=true để dùng Redis.\",\n    \"job_status_pending\": \"Đang chờ\",\n    \"job_status_processing\": \"Đang chạy\",\n    \"job_status_completed\": \"Hoàn thành\",\n    \"job_status_failed\": \"Thất bại\",\n    \"queue_database\": \"Database\",\n    \"queue_bullmq\": \"BullMQ\",\n    \"job_source_manual\": \"Thủ công\",\n    \"job_source_cron\": \"Lịch\",\n    \"delete\": \"Xóa\",\n    \"jobs_pagination\": \"Trang {{page}} / {{totalPages}} ({{total}})\",\n    \"pagination_prev\": \"Trước\",\n    \"pagination_next\": \"Sau\""
+        },
+        {
+          "type": "insertAfter",
+          "marker": "\"features\": \"Tính năng\"",
+          "content": ",\n    \"jobs\": \"Job nền\""
+        }
+      ]
+    },
+    {
       "file": "package.json",
       "ops": [
         {
@@ -146,26 +231,16 @@
           "content": "\nimport \"./admin/rbac\";\n"
         }
       ]
-    },
-    {
-      "file": "configs/plugins/i18n.ts",
-      "ops": [
-        {
-          "type": "insertAfter",
-          "marker": "res.locals.locale = locale;",
-          "content": "\n  const messages = i18next.getResourceBundle(locale, \"common\") as\n    | Record<string, unknown>\n    | undefined;\n  res.locals.i18nMessages = messages || {};"
-        }
-      ]
     }
   ],
   "postInstall": {
     "install": true,
     "scripts": ["db:generate", "db:push", "db:seed:rbac", "build:client"],
     "messages": [
-      "Requires: admin, database, vue (pnpm irwin add vue before admin-rbac)",
-      "Features: AM (menu), USM (users), RAP (roles/permissions)",
+      "Requires: admin, database, vue. Jobs UI: run `irwin add jobs` first (reads .env JOBS_USE_REDIS).",
+      "Features: AM (menu), USM (users), RAP (roles). JM + /admin/jobs when jobs detected.",
       "Role detail: Vue permission matrix — run pnpm build:client after changes",
-      "Requires login user from auth/db:seed (admin@example.com). Run: pnpm run db:seed:rbac for ADMIN role"
+      "Login: auth/db:seed user, then pnpm run db:seed:rbac for ADMIN role"
     ]
   }
 }

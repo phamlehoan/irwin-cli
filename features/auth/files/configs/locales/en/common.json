@@ -44,6 +44,8 @@
     "old_password_required": "Enter your current password",
     "registration_email_exists": "An account with this email already exists",
     "registration_success": "Account created. You can sign in now.",
+    "registration_invite_sent": "Account created for {{email}}. Check your email to activate it.",
+    "registration_invite_failed": "Account created for {{email}}, but we could not send the activation email.",
     "profile_updated": "Profile saved"
   },
   "auth": {
@@ -64,7 +66,8 @@
     "register_title": "Create your account",
     "first_name": "First name",
     "last_name": "Last name",
-    "create_account": "Create account"
+    "create_account": "Create account",
+    "register_email_hint": "We will email you a link to activate your account before you can sign in."
   },
   "profile": {
     "title": "My profile",

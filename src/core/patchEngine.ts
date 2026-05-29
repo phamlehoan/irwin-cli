@@ -65,10 +65,19 @@ export function ensurePatchTargetContent(
   return out;
 }
 
+function shouldSkipOp(content: string, op: PatchOp): boolean {
+  const needle = "skipIfContains" in op ? op.skipIfContains : undefined;
+  return Boolean(needle && content.includes(needle));
+}
+
 export function applyOp(
   content: string,
   op: PatchOp,
 ): { content: string; applied: boolean } {
+  if (shouldSkipOp(content, op)) {
+    return { content, applied: false };
+  }
+
   if (op.type === "append") {
     const suffix = content.endsWith("\n") ? "" : "\n";
     return { content: content + suffix + op.content, applied: true };

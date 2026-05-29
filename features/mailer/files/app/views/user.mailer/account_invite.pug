@@ -1,0 +1,10 @@
+doctype html
+html
+  body
+    p Hello #{fullName},
+    p
+      | Please confirm your account by setting your password:
+    p
+      a(href=activateLink)= activateLink
+    p
+      | If you did not request this, you can ignore this email.

@@ -18,7 +18,7 @@ function parseMessages(raw: unknown): ChatMessage[] | null {
 }
 
 export class ApiV1AiAssistantController extends ApiV1Controller {
-  /** POST /api/v1/ai/assistant/chat */
+  /** POST /api/v1/ai/chat */
   async chat() {
     if (!env.googleAiApiKey?.trim()) {
       return this.renderError(

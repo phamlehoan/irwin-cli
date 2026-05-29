@@ -19,6 +19,8 @@ block content
       label
         span= t('auth.confirm_password')
         input(type="password", name="passwordConfirmation", required, minlength="6", autocomplete="new-password")
+      if mailActivationRequired
+        p.small.text-muted= t('users.register_email_hint')
       button(type="submit")= t('users.create_account')
     p.auth-footer
       | #{t('auth.have_account')}

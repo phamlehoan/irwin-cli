@@ -1,0 +1,170 @@
+{
+  "id": "auth-api",
+  "version": "1.0.0",
+  "description": "JWT API auth for client apps (/api/v1/auth) — independent of session + web auth",
+  "requires": ["database", "api", "swagger"],
+  "npm": {
+    "dependencies": {
+      "class-validator": "^0.15.1",
+      "class-transformer": "^0.5.1",
+      "jsonwebtoken": "^9.0.2",
+      "cors": "^2.8.6"
+    },
+    "devDependencies": {
+      "@types/jsonwebtoken": "^9.0.9",
+      "@types/cors": "^2.8.17"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:user-profile-fields",
+          "skipIfContains": "phoneNumber",
+          "content": "\n  middleName  String? @map(\"middle_name\")\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  status    String @default(\"ACTIVE\") @map(\"status\")",
+          "skipIfContains": "phoneNumber",
+          "content": "\n  middleName  String? @map(\"middle_name\")\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
+        }
+      ]
+    },
+    {
+      "file": "app/models/enums/user.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  PASSWORD = \"PASSWORD\",",
+          "content": "\n  REFRESH_TOKEN = \"REFRESH_TOKEN\","
+        }
+      ]
+    },
+    {
+      "file": "configs/env/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "export default {",
+          "content": "const clientAppUrl = (process.env.CLIENT_APP_URL || \"http://localhost:9000\").replace(/\\/$/, \"\");\n\n"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "  sessionSecret: process.env.SESSION_SECRET || \"change-me-in-production\",",
+          "content": "\n  jwtSecret: process.env.JWT_SECRET || \"change-me-jwt-secret\",\n  clientAppUrl,\n  clientAppHashRouter: process.env.CLIENT_APP_HASH_ROUTER !== \"false\","
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# auth-api (JWT for mobile / SPA clients)\nJWT_SECRET=change-me-jwt-secret\nCLIENT_APP_URL=http://localhost:9000\n# CLIENT_APP_HASH_ROUTER=false\n# CORS_ORIGIN=http://localhost:9000\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import express from \"express\";",
+          "content": "\nimport cors from \"cors\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
+          "content": "\nimport { initializeHash } from \"./initializers\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initializeHash();"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:setup-app-middlewares",
+          "content": "\n    this.app.use(\n      cors({\n        origin: process.env.CORS_ORIGIN || true,\n        credentials: true,\n      }),\n    );"
+        }
+      ]
+    },
+    {
+      "file": "configs/initializers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./hash\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/api/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { checkReadiness } from \"@configs/plugins/health\";",
+          "skipIfContains": "ApiV1Route",
+          "content": "\nimport { ApiV1Route } from \"./v1\";"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  }\n}",
+          "skipIfContains": "ApiV1Route.draw()",
+          "content": "\n    this.path(\"/v1\", ApiV1Route.draw());"
+        }
+      ]
+    },
+    {
+      "file": "tsconfig.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:tsconfig-paths",
+          "content": "\n      \"@middlewares\": [\"./app/middlewares\"],\n      \"@middlewares/*\": [\"./app/middlewares/*\"],\n      \"@validators\": [\"./app/validators\"],\n      \"@validators/*\": [\"./app/validators/*\"],\n      \"@services\": [\"./app/services\"],\n      \"@services/*\": [\"./app/services/*\"],"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./utils/jwt\";\nexport * from \"./utils/mailConfig\";\n"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./api\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "scripts": ["db:generate", "db:push"],
+    "messages": [
+      "Requires `irwin add api` and `irwin add swagger` before install",
+      "Routes include `document` for OpenAPI; ts-rails also auto-infers body from `params(Validator)` when omitted",
+      "POST /api/v1/auth/register — sign up (ACTIVE immediately, or PENDING + email if mailer configured)",
+      "POST /api/v1/auth/login — email + password → access + refresh tokens",
+      "POST /api/v1/auth/refresh-token — rotate tokens",
+      "GET /api/v1/auth/me — profile (Authorization: Bearer <accessToken>)",
+      "PATCH /api/v1/auth/me/profile · POST /api/v1/auth/me/password",
+      "Invite / password-reset: GET|POST /api/v1/auth/invite/* and /password-reset/*",
+      "Set JWT_SECRET and CLIENT_APP_URL in .env",
+      "Demo user after db:seed: admin@example.com / password123",
+      "Works with `irwin add auth` in any order — shared auth-stack files sync after install",
+      "Optional: `irwin add auth` for web login (session) + /auth routes"
+    ]
+  }
+}

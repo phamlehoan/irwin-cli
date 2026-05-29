@@ -22,4 +22,4 @@ mixin notificationItem(n, opts)
         if link
           a.notif-item__link(href=link)= t('notifications.open_link')
         if isUnread
-          button.notif-item__read(type="button" data-notif-mark-read=data-notif-id=n.id)= t('notifications.mark_read')
+          button.notif-item__read(type="button" data-notif-mark-read=n.id)= t('notifications.mark_read')

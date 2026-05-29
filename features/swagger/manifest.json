@@ -21,7 +21,12 @@
         {
           "type": "insertAfter",
           "marker": "import { Route } from \"./routes\";",
-          "content": "\nimport { setupSwagger as mountSwaggerDocs } from \"./plugins/swagger\";"
+          "content": "\nimport { initSwaggerDocument, setupSwagger as mountSwaggerDocs } from \"./plugins/swagger\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initSwaggerDocument();"
         },
         {
           "type": "insertBefore",

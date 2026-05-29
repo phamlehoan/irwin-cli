@@ -7,7 +7,11 @@
     "dependencies": {
       "class-validator": "^0.15.1",
       "class-transformer": "^0.5.1",
-      "i18next": "^25.10.10"
+      "i18next": "^25.10.10",
+      "jsonwebtoken": "^9.0.2"
+    },
+    "devDependencies": {
+      "@types/jsonwebtoken": "^9.0.9"
     }
   },
   "syncLocalesFromEnabledFeatures": true,
@@ -25,8 +29,15 @@
       "ops": [
         {
           "type": "insertAfter",
-          "marker": "  email     String @unique @map(\"email\")",
-          "content": "\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
+          "marker": "// @irwin:user-profile-fields",
+          "skipIfContains": "phoneNumber",
+          "content": "\n  middleName  String? @map(\"middle_name\")\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
+        },
+        {
+          "type": "insertBefore",
+          "marker": "  status    String @default(\"ACTIVE\") @map(\"status\")",
+          "skipIfContains": "phoneNumber",
+          "content": "\n  middleName  String? @map(\"middle_name\")\n  phoneNumber String? @map(\"phone_number\")\n  gender      String? @map(\"gender\")\n  address     String? @map(\"address\")\n  avatarUrl   String? @map(\"avatar_url\")"
         }
       ]
     },
@@ -86,7 +97,25 @@
         {
           "type": "insertAfter",
           "marker": "// @irwin:tsconfig-paths",
-          "content": "\n      \"@middlewares\": [\"./app/middlewares\"],\n      \"@middlewares/*\": [\"./app/middlewares/*\"],\n      \"@validators\": [\"./app/validators\"],\n      \"@validators/*\": [\"./app/validators/*\"],"
+          "content": "\n      \"@middlewares\": [\"./app/middlewares\"],\n      \"@middlewares/*\": [\"./app/middlewares/*\"],\n      \"@validators\": [\"./app/validators\"],\n      \"@validators/*\": [\"./app/validators/*\"],\n      \"@services\": [\"./app/services\"],\n      \"@services/*\": [\"./app/services/*\"],"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./utils/jwt\";\nexport * from \"./utils/mailConfig\";\n"
+        }
+      ]
+    },
+    {
+      "file": ".env.example",
+      "ops": [
+        {
+          "type": "append",
+          "content": "\n# Email activation (irwin add mailer + SMTP or MAIL_SERVICE=test)\n# JWT_SECRET=change-me-jwt-secret\n# CLIENT_APP_URL=http://localhost:9000\n"
         }
       ]
     },
