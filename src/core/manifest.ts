@@ -44,6 +44,7 @@ export type FeatureManifest = {
   npm?: {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
   };
   files?: {
     from?: string;

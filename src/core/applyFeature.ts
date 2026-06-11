@@ -189,6 +189,7 @@ export function applyFeature(
         path.join(projectRoot, "package.json"),
         manifest.npm.dependencies,
         manifest.npm.devDependencies,
+        manifest.npm.scripts,
       );
     }
 

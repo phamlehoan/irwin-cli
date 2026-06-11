@@ -58,6 +58,7 @@ Add features inside the project:
 cd my-app
 irwin add database
 irwin add api
+irwin add swagger
 irwin add auth-api    # JWT API (SPA / mobile)
 # — or web UI:
 irwin add session
@@ -70,63 +71,71 @@ pnpm dev
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `irwin new <name>` | Create minimal HTTP app (Pug layout, Express, `ts-rails`) |
-| `irwin add <feature>` | Enable a feature pack (`api`, `auth`, …) |
-| `irwin g <type> <name>` | Run local `ts-rails` generators (`scaffold`, `resource`, …) |
-| `irwin list` | Show available / enabled features |
-| `irwin doctor` | Check deps, env, registry, `ts-rails` version |
+
+| Command                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| `irwin new <name>`       | Create minimal HTTP app (Pug layout, Express, `ts-rails`)        |
+| `irwin add <feature>`    | Enable a feature pack (`api`, `auth`, …)                         |
+| `irwin g <type> <name>`  | Run local `ts-rails` generators (`scaffold`, `resource`, …)      |
+| `irwin list`             | Show available / enabled features                                |
+| `irwin doctor`           | Check deps, env, registry, `ts-rails` version                    |
 | `irwin remove <feature>` | Revert patches and copied files (`--keep-files` = registry only) |
-| `irwin upgrade` | Bump `ts-rails` in `package.json` and `.irwin/features.json` |
+| `irwin upgrade`          | Bump `ts-rails` in `package.json` and `.irwin/features.json`     |
+
 
 ### `irwin new` options
 
-| Option | Description |
-|--------|-------------|
-| `-pm, --package-manager <pnpm\|npm\|yarn>` | Default: `pnpm`, or infer from environment |
-| `--skip-install` | Scaffold only |
-| `--skip-dev` | Install dependencies but do not start `dev` |
-| `--api-only` | JSON home route, no Pug views |
-| `--ts-rails-version <semver>` | Override default `ts-rails` pin (default: `^1.1.3` from npm) |
+
+| Option                                   | Description                                                  |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `-pm, --package-manager <pnpm|npm|yarn>` | Default: `pnpm`, or infer from environment                   |
+| `--skip-install`                         | Scaffold only                                                |
+| `--skip-dev`                             | Install dependencies but do not start `dev`                  |
+| `--api-only`                             | JSON home route, no Pug views                                |
+| `--ts-rails-version <semver>`            | Override default `ts-rails` pin (default: `^1.1.3` from npm) |
+
 
 No database is included in `new` — run `irwin add database` when you need Prisma.
 
 ### `irwin add` options
 
-| Option | Description |
-|--------|-------------|
+
+| Option      | Description                |
+| ----------- | -------------------------- |
 | `--dry-run` | Preview copies and patches |
-| `--force` | Overwrite existing files |
+| `--force`   | Overwrite existing files   |
+
 
 ---
 
 ## Feature packs
 
-| Feature | Description |
-|---------|-------------|
-| `api` | `/api/health` + readiness helper |
-| `database` | Prisma SQLite + User/Password + seed |
-| `session` | express-session + flash + bcrypt |
-| `auth` | Web login, register, profile, i18n en/vi (`requires`: database, session) |
-| `auth-api` | JWT REST auth `/api/v1/auth/*` (`requires`: database, api) |
-| `admin` | Dashboard + user CRUD (`requires`: auth) |
-| `admin-rbac` | Feature RBAC, roles/features admin (`requires`: admin) |
-| `auth-oauth` | Google OAuth web login (`requires`: auth) |
-| `mailer` | Nodemailer adapters + `ApplicationMailer` |
-| `notifications` | In-app alerts: DB + SSE + `/notifications` (`requires`: database, auth) |
-| `notifications-push` | FCM push helper (`requires`: notifications) |
-| `swagger` | OpenAPI UI at `/docs` (development) |
-| `dev-tools` | Dev playground at `/dev` (development) |
-| `storage` | Local image upload → `public/uploads` |
-| `storage-cloud` | Cloudinary + Supabase (`requires`: storage) |
-| `jobs` | Job runtime (queue, cron, workers) |
-| `socket` | Socket.IO + floating chat demo |
-| `vue` | Vite bundle + `/vue-demo` |
-| `turso` | libSQL adapter + `db:deploy:turso` (`requires`: database) |
-| `netlify` | `netlify.toml` + serverless function |
-| `serverless` | `serverless.yml` + `lambda.ts` handler |
-| `ai` | Google Gemini chat API (`requires`: api) |
+
+| Feature              | Description                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| `api`                | `/api/health` + readiness helper                                         |
+| `database`           | Prisma SQLite + User/Password + seed                                     |
+| `session`            | express-session + flash + bcrypt                                         |
+| `auth`               | Web login, register, profile, i18n en/vi (`requires`: database, session) |
+| `auth-api`           | JWT REST auth `/api/v1/auth/*` (`requires`: database, api)               |
+| `admin`              | Dashboard + user CRUD (`requires`: auth)                                 |
+| `admin-rbac`         | Feature RBAC, roles/features admin (`requires`: admin)                   |
+| `auth-oauth`         | Google OAuth web login (`requires`: auth)                                |
+| `mailer`             | Nodemailer adapters + `ApplicationMailer`                                |
+| `notifications`      | In-app alerts: DB + SSE + `/notifications` (`requires`: database, auth)  |
+| `notifications-push` | FCM push helper (`requires`: notifications)                              |
+| `swagger`            | OpenAPI UI at `/docs` (development)                                      |
+| `dev-tools`          | Dev playground at `/dev` (development)                                   |
+| `storage`            | Local image upload → `public/uploads`                                    |
+| `storage-cloud`      | Cloudinary + Supabase (`requires`: storage)                              |
+| `jobs`               | Job runtime (queue, cron, workers)                                       |
+| `socket`             | Socket.IO + floating chat demo                                           |
+| `vue`                | Vite bundle + `/vue-demo`                                                |
+| `turso`              | libSQL adapter + `db:deploy:turso` (`requires`: database)                |
+| `netlify`            | `netlify.toml` + serverless function                                     |
+| `serverless`         | `serverless.yml` + `lambda.ts` handler                                   |
+| `ai`                 | Google Gemini chat API (`requires`: api)                                 |
+
 
 When `jobs` is installed together with `admin-rbac`, the admin UI includes `/admin/jobs`.
 

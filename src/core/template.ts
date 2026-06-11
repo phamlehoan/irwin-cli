@@ -89,21 +89,26 @@ export function copyTemplate(
   copyWithRender(templateDir, targetDir, vars);
 }
 
-/** Shallow merge npm deps into project package.json */
+/** Shallow merge npm deps and scripts into project package.json */
 export function mergePackageJsonDeps(
   packageJsonPath: string,
   deps?: Record<string, string>,
   devDeps?: Record<string, string>,
+  scripts?: Record<string, string>,
 ): void {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
   };
   if (deps) {
     pkg.dependencies = { ...pkg.dependencies, ...deps };
   }
   if (devDeps) {
     pkg.devDependencies = { ...pkg.devDependencies, ...devDeps };
+  }
+  if (scripts) {
+    pkg.scripts = { ...pkg.scripts, ...scripts };
   }
   fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
 }
