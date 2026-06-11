@@ -1,5 +1,6 @@
 import { FlashType } from "@configs/enum";
 import { Prisma, User, UserToRole } from "@db";
+import { createOrRestoreRole, isRoleCodeBlocked } from "@lib/utils/roleCode";
 import models from "@models";
 import {
   RoleCreateValidator,
@@ -358,6 +359,14 @@ export class AdminRoleController extends AdminController {
         this.flash(FlashType.Errors, { msg: this.t("admin.role_read_only") });
         return this.redirect(`/admin/roles/${id}`);
       }
+      if (
+        code !== undefined &&
+        code !== role.code &&
+        (await isRoleCodeBlocked(code, id))
+      ) {
+        this.flash(FlashType.Errors, { msg: this.t("admin.role_code_taken") });
+        return this.redirect(`/admin/roles/${id}/edit`);
+      }
       await models.role.update({ where: { id }, data: updateData });
     }
 
@@ -402,24 +411,18 @@ export class AdminRoleController extends AdminController {
     );
     const { code, name, description } = data;
 
-    const existing = await models.role.findFirst({
-      where: { code, deleted: false },
+    const result = await createOrRestoreRole({
+      code: code || "",
+      name: name || "",
+      description: description || "",
     });
-    if (existing) {
+    if (!result.ok) {
       this.flash(FlashType.Errors, { msg: this.t("admin.role_code_taken") });
       return this.redirect("/admin/roles/new");
     }
 
-    const role = await models.role.create({
-      data: {
-        code: code || "",
-        name: name || "",
-        description: description || "",
-      },
-    });
-
     this.flash(FlashType.Success, { msg: this.t("admin.role_created") });
-    this.redirect(`/admin/roles/${role.id}`);
+    this.redirect(`/admin/roles/${result.role.id}`);
   }
 
   async destroy() {

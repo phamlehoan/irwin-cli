@@ -79,20 +79,33 @@ export async function ensureRole(
   name: string,
   description?: string | null,
 ) {
-  let role = await models.role.findFirst({
-    where: { code: roleCode, deleted: false },
-  });
-  if (!role) {
-    role = await models.role.create({
-      data: {
-        code: roleCode,
-        name,
-        description: description ?? null,
-        isReadOnly: roleCode === "ADMIN",
-      },
-    });
-    console.log(`[ensureRole] Created role: ${roleCode}`);
+  const existing = await models.role.findFirst({ where: { code: roleCode } });
+  if (existing) {
+    if (existing.deleted) {
+      const restored = await models.role.update({
+        where: { id: existing.id },
+        data: {
+          deleted: false,
+          name,
+          description: description ?? null,
+          isReadOnly: roleCode === "ADMIN",
+        },
+      });
+      console.log(`[ensureRole] Restored role: ${roleCode}`);
+      return restored;
+    }
+    return existing;
   }
+
+  const role = await models.role.create({
+    data: {
+      code: roleCode,
+      name,
+      description: description ?? null,
+      isReadOnly: roleCode === "ADMIN",
+    },
+  });
+  console.log(`[ensureRole] Created role: ${roleCode}`);
   return role;
 }
 

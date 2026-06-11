@@ -8,6 +8,7 @@ export type AuthStackContext = {
   authEnabled: boolean;
   authApiEnabled: boolean;
   adminRbacEnabled: boolean;
+  adminRbacApiEnabled: boolean;
 };
 
 const STACK_SHARED = [
@@ -24,6 +25,7 @@ export function getAuthStackContext(projectRoot: string): AuthStackContext {
     authEnabled: isFeatureEnabled(registry, "auth"),
     authApiEnabled: isFeatureEnabled(registry, "auth-api"),
     adminRbacEnabled: isFeatureEnabled(registry, "admin-rbac"),
+    adminRbacApiEnabled: isFeatureEnabled(registry, "admin-rbac-api"),
   };
 }
 
@@ -80,7 +82,9 @@ export function syncAuthStackFiles(
   const ctx = getAuthStackContext(projectRoot);
   const installingAuthStack =
     installingFeatureId === "auth" || installingFeatureId === "auth-api";
-  const installingRbac = installingFeatureId === "admin-rbac";
+  const installingRbac =
+    installingFeatureId === "admin-rbac" ||
+    installingFeatureId === "admin-rbac-api";
 
   if (!ctx.authEnabled && !ctx.authApiEnabled && !installingAuthStack) {
     return [];
@@ -89,7 +93,7 @@ export function syncAuthStackFiles(
   const root = authStackRoot();
   const sharedDir = path.join(root, "files-shared");
   const variantDir =
-    ctx.adminRbacEnabled || installingRbac
+    ctx.adminRbacEnabled || ctx.adminRbacApiEnabled || installingRbac
       ? path.join(root, "files-rbac")
       : path.join(root, "files-default");
 

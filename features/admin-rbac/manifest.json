@@ -12,7 +12,6 @@
   "files": {
     "from": "files",
     "overwrite": [
-      "app/middlewares/application.middleware.ts",
       "configs/routes/admin/index.ts",
       "configs/routes/admin/adminUser.route.ts",
       "configs/routes/admin/adminRole.route.ts",
@@ -167,6 +166,34 @@
           "type": "insertAfter",
           "marker": "\"login_first\": \"Please sign in first\"",
           "content": ",\n    \"no_permission\": \"You do not have permission for this action\""
+        },
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_home\": \"Back to home\"",
+          "skipIfContains": "\"select_all\"",
+          "content": ",\n  \"select_all\": \"Select all\""
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/vi/common.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_home\": \"Về trang chủ\"",
+          "skipIfContains": "\"select_all\"",
+          "content": ",\n  \"select_all\": \"Chọn tất cả\""
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/vi/admin.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"back_to_users\": \"Quay lại danh sách\"",
+          "skipIfContains": "\"permission_information\"",
+          "content": ",\n    \"roles\": \"Vai trò\",\n    \"features\": \"Tính năng\",\n    \"code\": \"Mã\",\n    \"view\": \"Xem\",\n    \"no_roles\": \"Chưa có vai trò\",\n    \"no_features\": \"Chưa có tính năng\",\n    \"back_to_roles\": \"Quay lại danh sách vai trò\",\n    \"back_to_features\": \"Quay lại danh sách tính năng\",\n    \"new_role\": \"Thêm vai trò\",\n    \"edit_role\": \"Sửa vai trò\",\n    \"role_created\": \"Đã tạo vai trò\",\n    \"role_updated\": \"Đã cập nhật vai trò\",\n    \"role_deleted\": \"Đã xóa vai trò\",\n    \"role_code_taken\": \"Mã vai trò đã tồn tại\",\n    \"role_read_only\": \"Vai trò này không thể thay đổi\",\n    \"permissions\": \"Quyền\",\n    \"save_permissions\": \"Lưu quyền\",\n    \"permissions_updated\": \"Đã cập nhật quyền\",\n    \"search\": \"Tìm kiếm\",\n    \"role_information\": \"Thông tin vai trò\",\n    \"assigned_users\": \"Người dùng được gán\",\n    \"permission_information\": \"Quyền theo tính năng\",\n    \"assign_user\": \"Gán người dùng\",\n    \"assign_user_to\": \"Gán người dùng cho {{name}}\",\n    \"assign_selected\": \"Gán đã chọn\",\n    \"select_one_user\": \"Chọn ít nhất một người dùng\",\n    \"users_assigned\": \"Đã gán {{count}} người dùng\",\n    \"user_unassigned\": \"Đã bỏ gán người dùng\",\n    \"no_users_assigned\": \"Chưa gán người dùng\",\n    \"no_users_available\": \"Không có người dùng để gán\",\n    \"unassign\": \"Bỏ gán\",\n    \"delete_role_confirm\": \"Xóa vai trò này?\",\n    \"users_count\": \"Người dùng\",\n    \"apply_permissions\": \"Áp dụng quyền\",\n    \"modules_list\": \"Module\",\n    \"modules_list_hint\": \"Chọn module, sau đó tick quyền bên phải\",\n    \"functions_components\": \"Chức năng & quyền\",\n    \"functions_components_hint\": \"Mở rộng từng tính năng để chọn READ, CREATE, UPDATE, DELETE\",\n    \"perm_pick_menu_group\": \"Chọn module bên trái\",\n    \"perm_no_child_features\": \"Không có tính năng trong module này\",\n    \"role_perm_functions_intro\": \"Tick từng quyền mà vai trò này được phép\""
         }
       ]
     },
@@ -237,7 +264,8 @@
     "install": true,
     "scripts": ["db:generate", "db:push", "db:seed:rbac", "build:client"],
     "messages": [
-      "Requires: admin, database, vue. Jobs UI: run `irwin add jobs` first (reads .env JOBS_USE_REDIS).",
+      "Requires: admin, database, vue. API-only: `irwin add admin-rbac-api` (no admin/vue).",
+      "Jobs UI: run `irwin add jobs` first (reads .env JOBS_USE_REDIS).",
       "Features: AM (menu), USM (users), RAP (roles). JM + /admin/jobs when jobs detected.",
       "Role detail: Vue permission matrix — run pnpm build:client after changes",
       "Login: auth/db:seed user, then pnpm run db:seed:rbac for ADMIN role"

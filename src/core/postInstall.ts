@@ -11,6 +11,18 @@ import {
 } from "../utils/packageManager";
 import type { FeatureManifest } from "./manifest";
 import { readRegistry } from "./registry";
+import { mergePackageJsonDeps } from "./template";
+
+/** vue@3.5.36 on npm ships broken workspace:* deps — pin before install. */
+function ensureVuePin(projectRoot: string): void {
+  mergePackageJsonDeps(
+    path.join(projectRoot, "package.json"),
+    { vue: "3.5.35" },
+    undefined,
+    undefined,
+    { vue: "3.5.35" },
+  );
+}
 
 export type PostInstallOptions = {
   skipInstall?: boolean;
@@ -51,6 +63,9 @@ export async function runFeaturePostInstall(
     !options.skipInstall && npmDeps && (post?.install ?? true);
 
   if (shouldInstall) {
+    if (manifest.id === "vue" || manifest.npm?.dependencies?.vue) {
+      ensureVuePin(projectRoot);
+    }
     const version = await assertPackageManagerInstalled(pm);
     log.info(`Using ${pm} ${version}`);
     const install = installCommand(pm);

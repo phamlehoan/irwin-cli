@@ -19,6 +19,7 @@ import { copyLocalesFromEnabledFeatures } from "./localeSync";
 import { collectPatchBackups } from "./removeFeature";
 import { mergePackageJsonDeps } from "./template";
 import { syncAuthStackFiles } from "./authStackSync";
+import { syncRbacStackFiles } from "./rbacStackSync";
 import { syncHomeFeatures } from "./syncHomeFeatures";
 
 export type ApplyFeatureOptions = {
@@ -105,7 +106,7 @@ export function applyFeature(
 
   validateFeatureRequirements(resolved, projectRoot);
 
-  if (manifest.id === "admin-rbac") {
+  if (manifest.id === "admin-rbac" || manifest.id === "admin-rbac-api") {
     if (installContext.jobsEnabled) {
       const mode =
         installContext.jobsQueueMode === "redis"
@@ -155,8 +156,14 @@ export function applyFeature(
     );
   }
 
-  if (["auth", "auth-api", "admin-rbac"].includes(manifest.id)) {
+  if (
+    ["auth", "auth-api", "admin-rbac", "admin-rbac-api"].includes(manifest.id)
+  ) {
     copied.push(...syncAuthStackFiles(projectRoot, dryRun, manifest.id));
+  }
+
+  if (["admin-rbac", "admin-rbac-api"].includes(manifest.id)) {
+    copied.push(...syncRbacStackFiles(projectRoot, dryRun, manifest.id));
   }
 
   const patchBackups =
@@ -190,6 +197,7 @@ export function applyFeature(
         manifest.npm.dependencies,
         manifest.npm.devDependencies,
         manifest.npm.scripts,
+        manifest.npm.pnpmOverrides,
       );
     }
 

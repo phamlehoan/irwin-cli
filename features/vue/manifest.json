@@ -5,11 +5,14 @@
   "requires": [],
   "npm": {
     "dependencies": {
-      "vue": "^3.5.32"
+      "vue": "3.5.35"
     },
     "devDependencies": {
       "@vitejs/plugin-vue": "^6.0.5",
       "vite": "^7.3.2"
+    },
+    "pnpmOverrides": {
+      "vue": "3.5.35"
     }
   },
   "files": {
@@ -68,7 +71,8 @@
       "Built: app/assets/generated/bundle.js",
       "In a pug layout: script(src='/assets/generated/bundle.js')",
       "Mount point: div#helloVueApp (see HelloIsland.vue)",
-      "Run: pnpm build:client after changing Vue files"
+      "Run: pnpm build:client after changing Vue files",
+      "Vue pinned to 3.5.35 — npm 3.5.36 ships broken workspace:* deps (avoid ^3.5.32 until fixed)"
     ]
   }
 }

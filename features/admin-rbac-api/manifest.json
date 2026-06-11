@@ -1,0 +1,142 @@
+{
+  "id": "admin-rbac-api",
+  "version": "1.0.0",
+  "description": "Feature RBAC REST API (/api/v1/admin/*) — no web admin UI",
+  "requires": ["database", "api", "swagger", "auth-api"],
+  "npm": {
+    "dependencies": {
+      "class-validator": "^0.15.1",
+      "class-transformer": "^0.5.1"
+    },
+    "scripts": {
+      "db:seed:rbac": "tsx configs/db/seed-rbac.ts"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/db/schema.prisma",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "  passwords Password[]",
+          "skipIfContains": "roles       UserToRole[]",
+          "content": "\n  roles       UserToRole[]\n  permissions UserToPermission[]"
+        },
+        {
+          "type": "append",
+          "skipIfContains": "model Role {",
+          "content": "\nmodel Role {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @unique @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  isReadOnly  Boolean  @default(false) @map(\"is_read_only\")\n  users       UserToRole[]\n  permissions RoleToPermission[]\n  @@map(\"roles\")\n}\n\nmodel UserToRole {\n  userId    String   @map(\"user_id\")\n  roleId    String   @map(\"role_id\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)\n  @@id([userId, roleId])\n  @@map(\"user_to_role\")\n}\n\nmodel Feature {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  type        String   @default(\"FEATURE\") @map(\"type\")\n  parentId    String?  @map(\"parent_id\")\n  sortOrder   Int      @default(0) @map(\"sort_order\")\n  parent      Feature?  @relation(\"featureTree\", fields: [parentId], references: [id])\n  children    Feature[] @relation(\"featureTree\")\n  permissions Permission[]\n  @@map(\"features\")\n}\n\nmodel Permission {\n  id          String   @id @default(uuid()) @map(\"id\")\n  createdAt   DateTime @default(now()) @map(\"created_at\")\n  updatedAt   DateTime @updatedAt @map(\"updated_at\")\n  deleted     Boolean  @default(false) @map(\"deleted\")\n  code        String   @map(\"code\")\n  name        String   @map(\"name\")\n  description String?  @map(\"description\")\n  featureId   String   @map(\"feature_id\")\n  feature     Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)\n  users       UserToPermission[]\n  roles       RoleToPermission[]\n  @@map(\"permissions\")\n}\n\nmodel UserToPermission {\n  userId       String @map(\"user_id\")\n  permissionId String @map(\"permission_id\")\n  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)\n  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)\n  @@id([userId, permissionId])\n  @@map(\"user_to_permissions\")\n}\n\nmodel RoleToPermission {\n  roleId       String @map(\"role_id\")\n  permissionId String @map(\"permission_id\")\n  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)\n  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)\n  @@id([roleId, permissionId])\n  @@map(\"role_to_permissions\")\n}\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/enum/index.ts",
+      "ops": [
+        {
+          "type": "insertBefore",
+          "marker": "/** Flash categories",
+          "skipIfContains": "RoleAndPermission",
+          "content": "export enum Feature {\n  AdministrationManagement = \"AM\",\n  UserManagement = \"USM\",\n  RoleAndPermission = \"RAP\",\n}\n\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/enum/index.ts",
+      "when": { "jobsEnabled": true },
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "RoleAndPermission = \"RAP\",",
+          "skipIfContains": "JobManagement",
+          "content": "\n  JobManagement = \"JM\","
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:rails-route-permissions",
+          "skipIfContains": "RailsRoute.permissionFactory",
+          "content": "\nimport {\n  Permission,\n  ValidateAnyPermissionMiddleware,\n  ValidateUserPermissionMiddleware,\n} from \"@middlewares\";\n\nRailsRoute.permissionFactory = {\n  forUser: (permission: string) => {\n    const m = new ValidateUserPermissionMiddleware(permission);\n    return m.execute.bind(m);\n  },\n  forAny: (permissions: string[]) => {\n    const m = new ValidateAnyPermissionMiddleware(permissions);\n    return m.execute.bind(m);\n  },\n};\n\nRailsRoute.actionPermissionMap = {\n  read: Permission.Read,\n  create: Permission.Create,\n  update: Permission.Update,\n  delete: Permission.Delete,\n};\n"
+        }
+      ]
+    },
+    {
+      "file": "app/middlewares/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "skipIfContains": "validatePermission.middleware",
+          "content": "export * from \"./enums/permissions\";\nexport * from \"./validatePermission.middleware\";\n"
+        }
+      ]
+    },
+    {
+      "file": "lib/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:lib-exports",
+          "skipIfContains": "userPermissions",
+          "content": "\nexport * from \"./utils/userPermissions\";\n"
+        }
+      ]
+    },
+    {
+      "file": "configs/locales/en/common.json",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "\"login_first\": \"Please sign in first\"",
+          "skipIfContains": "no_permission",
+          "content": ",\n    \"no_permission\": \"You do not have permission for this action\""
+        }
+      ]
+    },
+    {
+      "file": "configs/routes/api/v1/index.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { AuthRoute } from \"./auth\";",
+          "skipIfContains": "ApiV1AdminRoute",
+          "content": "\nimport { ApiV1AdminRoute } from \"./admin\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "this.path(action(ValidateUserLoginMiddleware));",
+          "skipIfContains": "/admin\", ApiV1AdminRoute",
+          "content": "\n\n    this.path(\"/admin\", ApiV1AdminRoute.draw());"
+        }
+      ]
+    },
+    {
+      "file": "app/controllers/api/v1/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "skipIfContains": "./admin",
+          "content": "export * from \"./admin\";\n"
+        }
+      ]
+    }
+  ],
+  "postInstall": {
+    "install": true,
+    "scripts": ["db:generate", "db:push", "db:seed:rbac"],
+    "messages": [
+      "Requires: database, api, swagger, auth-api (install auth-api first)",
+      "RBAC REST: /api/v1/admin/users · /roles · /features (Bearer JWT)",
+      "OpenAPI: GET /docs — tags Admin Users, Admin Roles, Admin Features",
+      "Permission codes: USM (users), RAP (roles/features) — same as admin-rbac web",
+      "Run pnpm db:seed:rbac after db:seed — assigns ADMIN role to admin@example.com",
+      "Works with `irwin add admin-rbac` in any order — shared admin-rbac-stack syncs middleware",
+      "Optional: `irwin add admin` + `irwin add admin-rbac` for web UI alongside API"
+    ]
+  }
+}

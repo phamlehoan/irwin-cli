@@ -119,7 +119,8 @@ No database is included in `new` — run `irwin add database` when you need Pris
 | `auth`               | Web login, register, profile, i18n en/vi (`requires`: database, session) |
 | `auth-api`           | JWT REST auth `/api/v1/auth/*` (`requires`: database, api)               |
 | `admin`              | Dashboard + user CRUD (`requires`: auth)                                 |
-| `admin-rbac`         | Feature RBAC, roles/features admin (`requires`: admin)                   |
+| `admin-rbac`         | Feature RBAC, roles/features admin UI (`requires`: admin, vue)             |
+| `admin-rbac-api`     | RBAC REST `/api/v1/admin/*` — no UI (`requires`: auth-api)                 |
 | `auth-oauth`         | Google OAuth web login (`requires`: auth)                                |
 | `mailer`             | Nodemailer adapters + `ApplicationMailer`                                |
 | `notifications`      | In-app alerts: DB + SSE + `/notifications` (`requires`: database, auth)  |
@@ -138,6 +139,8 @@ No database is included in `new` — run `irwin add database` when you need Pris
 
 
 When `jobs` is installed together with `admin-rbac`, the admin UI includes `/admin/jobs`.
+
+`admin-rbac` and `admin-rbac-api` share **admin-rbac-stack** (middleware, permissions, seed) — install in any order without overwriting each other. Same pattern as `auth` + `auth-api`.
 
 ---
 

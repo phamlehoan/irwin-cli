@@ -95,11 +95,13 @@ export function mergePackageJsonDeps(
   deps?: Record<string, string>,
   devDeps?: Record<string, string>,
   scripts?: Record<string, string>,
+  pnpmOverrides?: Record<string, string>,
 ): void {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     scripts?: Record<string, string>;
+    pnpm?: { overrides?: Record<string, string> };
   };
   if (deps) {
     pkg.dependencies = { ...pkg.dependencies, ...deps };
@@ -109,6 +111,12 @@ export function mergePackageJsonDeps(
   }
   if (scripts) {
     pkg.scripts = { ...pkg.scripts, ...scripts };
+  }
+  if (pnpmOverrides) {
+    pkg.pnpm = {
+      ...pkg.pnpm,
+      overrides: { ...pkg.pnpm?.overrides, ...pnpmOverrides },
+    };
   }
   fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
 }

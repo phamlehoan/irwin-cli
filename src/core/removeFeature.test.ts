@@ -28,6 +28,13 @@ describe("remove / manifest", () => {
     const m = loadManifest("admin-rbac");
     assert.ok(m.requires?.includes("admin"));
   });
+
+  it("admin-rbac-api requires auth-api not admin", () => {
+    const m = loadManifest("admin-rbac-api");
+    assert.ok(m.requires?.includes("auth-api"));
+    assert.ok(m.requires?.includes("database"));
+    assert.ok(!m.requires?.includes("admin"));
+  });
 });
 
 describe("revertFeatureArtifacts", () => {

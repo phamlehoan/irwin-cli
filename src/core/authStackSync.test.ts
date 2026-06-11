@@ -82,4 +82,15 @@ describe("authStackSync", () => {
     assert.equal(ctx.authApiEnabled, true);
     assert.equal(ctx.authEnabled, false);
   });
+
+  it("syncs rbac currentUser when only admin-rbac-api is enabled", () => {
+    const dir = mkProject(["auth-api", "admin-rbac-api"]);
+    syncAuthStackFiles(dir, false);
+    const src = fs.readFileSync(
+      path.join(dir, "app/middlewares/currentUser.middleware.ts"),
+      "utf8",
+    );
+    assert.match(src, /getUserById\(userId, true\)/);
+    assert.match(src, /hasAdminAccess/);
+  });
 });
