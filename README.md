@@ -1,6 +1,8 @@
 # irwin-cli
 
-CLI to scaffold **Irwin** apps (Express + TypeScript, Rails-like structure) and add optional **feature packs** — auth, API, admin, jobs, notifications, AI, and more.
+CLI to **scaffold** Irwin apps (Express + TypeScript, Rails-like structure) and optionally add **feature packs**.
+
+This tool exists so a person can start a project quickly. It is not the product. A generated app should only contain the packs that project actually uses — never add a pack "just in case". Bugs that belong in the runtime (`ts-rails`) are fixed there; unused packs are simply not installed.
 
 Runtime and code generators live in the npm package **[ts-rails](https://www.npmjs.com/package/ts-rails)**. Each app installs its own `ts-rails`; `irwin g` always delegates to that local copy.
 
@@ -34,7 +36,8 @@ npm create irwin@latest my-app
 Create a new app (scaffold → install deps → start dev server):
 
 ```bash
-irwin new my-app
+irwin new my-app            # a path works too: irwin new services/inv --name @org/inv
+                            # --no-start: skip the dev server; --with-home: feature-store home page
 cd my-app
 ```
 
@@ -61,6 +64,7 @@ irwin add api
 irwin add swagger
 irwin add auth-api    # JWT API (SPA / mobile)
 # — or web UI:
+irwin add hash       # shared bcrypt hasher (session and auth-api require it)
 irwin add session
 irwin add auth
 pnpm db:push && pnpm db:seed
@@ -100,13 +104,24 @@ No database is included in `new` — run `irwin add database` when you need Pris
 ### `irwin add` options
 
 
-| Option      | Description                |
-| ----------- | -------------------------- |
-| `--dry-run` | Preview copies and patches |
-| `--force`   | Overwrite existing files   |
+| Option           | Description                                              |
+| ---------------- | -------------------------------------------------------- |
+| `--dry-run`      | Preview copies and patches                               |
+| `--force`        | Overwrite existing files                                 |
+| `--skip-install` | Do not install npm deps or run post-install scripts      |
+
+`irwin g` forwards `--api`, `--force`, `--skip`, and `--dry-run` to the local `ts-rails` generator (which never overwrites existing files unless `--force`).
 
 
 ---
+
+## How this fits Irwin (read this before adding packs)
+
+- `irwin new` creates a **minimal** HTTP app. Database, auth, admin, jobs, AI, serverless, … are **opt-in**.
+- `irwin add <pack>` copies that pack into the app. If the product does not need it, do not add it. Do not copy every folder under `features/` into IrwinERP or any customer app.
+- Packs that look unused in the ERP (`serverless`, `netlify`, `turso`, `vue`, `ai`, …) stay in this CLI so other Irwin apps can still `irwin add` them. Their presence here is not a requirement to ship them.
+- If a pack (or the runtime it relies on) is actually broken, **patch it** in `irwin-cli` / `irwin-rails` / the template. Do not delete a pack because the current customer does not use it.
+- The `ai` pack is Gemini chat (`POST /api/v1/ai/chat`). The SQL assistant lives in the sample app (`irwin-framework_ts-on-rails`); it is kept, hardened (tokenizer SQL guard), and remains optional.
 
 ## Feature packs
 
@@ -115,9 +130,10 @@ No database is included in `new` — run `irwin add database` when you need Pris
 | -------------------- | ------------------------------------------------------------------------ |
 | `api`                | `/api/health` + readiness helper                                         |
 | `database`           | Prisma SQLite + User/Password + seed                                     |
-| `session`            | express-session + flash + bcrypt                                         |
+| `hash`               | bcrypt hasher, single source of `initializeHash`                         |
+| `session`            | express-session + flash (`requires`: hash)                               |
 | `auth`               | Web login, register, profile, i18n en/vi (`requires`: database, session) |
-| `auth-api`           | JWT REST auth `/api/v1/auth/*` (`requires`: database, api)               |
+| `auth-api`           | JWT REST auth `/api/v1/auth/*` (`requires`: database, api, swagger, hash) |
 | `admin`              | Dashboard + user CRUD (`requires`: auth)                                 |
 | `admin-rbac`         | Feature RBAC, roles/features admin UI (`requires`: admin, vue)             |
 | `admin-rbac-api`     | RBAC REST `/api/v1/admin/*` — no UI (`requires`: auth-api)                 |
@@ -146,7 +162,7 @@ When `jobs` is installed together with `admin-rbac`, the admin UI includes `/adm
 
 ## Local development (monorepo)
 
-When working inside the **VIZ Framework** repo:
+When working inside an Irwin monorepo:
 
 ```bash
 cd irwin-cli

@@ -118,7 +118,7 @@ export class AdminRoleController extends AdminController {
 
     const search = String(this.req.query.search || "").trim();
     const page = Math.max(1, parseInt(String(this.req.query.page || "1"), 10));
-    const sortBy = String(this.req.query.sortBy || "accountName");
+    const sortBy = String(this.req.query.sortBy || "name");
     const sortOrder = String(this.req.query.sortOrder || "asc") as
       | "asc"
       | "desc";
@@ -162,7 +162,7 @@ export class AdminRoleController extends AdminController {
     assignedUsers.sort((a: User, b: User) => {
       const an = `${a.firstName || ""} ${a.lastName || ""}`.trim();
       const bn = `${b.firstName || ""} ${b.lastName || ""}`.trim();
-      if (sortBy === "accountName") return cmp(an, bn);
+      if (sortBy === "name") return cmp(an, bn);
       if (sortBy === "email") return cmp(a.email, b.email);
       return cmp(an, bn);
     });
@@ -178,7 +178,7 @@ export class AdminRoleController extends AdminController {
 
     const q: Record<string, string> = {};
     if (search) q.search = search;
-    if (sortBy && sortBy !== "accountName") q.sortBy = sortBy;
+    if (sortBy && sortBy !== "name") q.sortBy = sortBy;
     if (sortOrder && sortOrder !== "asc") q.sortOrder = sortOrder;
     if (filterStatus) q.filterStatus = filterStatus;
     if (perPage !== DEFAULT_PER_PAGE) q.perPage = String(perPage);

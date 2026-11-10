@@ -1,4 +1,4 @@
-import { loadDotenv } from "../../loadDotenv";
+import { getPackageRootSync, loadDotenv } from "../../loadDotenv";
 
 loadDotenv();
 import { createClient, type Client } from "@libsql/client";
@@ -14,7 +14,7 @@ type MigrationFile = {
 };
 
 const MIGRATION_TABLE = "_turso_schema_migrations";
-const MIGRATIONS_DIR = path.resolve(process.cwd(), "configs/db/migrations");
+const MIGRATIONS_DIR = path.join(getPackageRootSync(__dirname), "configs/db/migrations");
 
 function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");

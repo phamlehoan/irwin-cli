@@ -1,17 +1,17 @@
 {
   "id": "session",
-  "version": "1.0.0",
-  "description": "express-session + express-flash + bcrypt hasher",
-  "requires": [],
+  "version": "1.1.0",
+  "description": "express-session + express-flash (password hasher now lives in the hash pack)",
+  "requires": [
+    "hash"
+  ],
   "npm": {
     "dependencies": {
       "express-session": "^1.19.0",
-      "express-flash": "^0.0.2",
-      "bcrypt": "^5.1.1"
+      "express-flash": "^0.0.2"
     },
     "devDependencies": {
-      "@types/express-session": "^1.18.2",
-      "@types/bcrypt": "^5.0.2"
+      "@types/express-session": "^1.18.2"
     }
   },
   "files": {
@@ -28,17 +28,12 @@
         {
           "type": "insertAfter",
           "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
-          "content": "\nimport { initializeHash, initializeSession } from \"./initializers\";"
+          "content": "\nimport { initializeSession } from \"./initializers\";"
         },
         {
           "type": "insertAfter",
           "marker": "import express from \"express\";",
           "content": "\nimport flash from \"express-flash\";"
-        },
-        {
-          "type": "insertAfter",
-          "marker": "// @irwin:initializers",
-          "content": "\n    initializeHash();"
         },
         {
           "type": "insertAfter",
@@ -59,7 +54,10 @@
   ],
   "postInstall": {
     "messages": [
-      "Set SESSION_SECRET in .env"
+      "SESSION_SECRET is generated into .env on install"
+    ],
+    "generateSecrets": [
+      "SESSION_SECRET"
     ]
   }
 }

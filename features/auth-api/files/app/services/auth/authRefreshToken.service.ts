@@ -1,4 +1,4 @@
-import { generateToken, verifyToken } from "@lib";
+import { generateToken, hashToken, verifyToken } from "@lib";
 import { PasswordType, UserStatus } from "@models/enums";
 import { UnauthorizedError } from "ts-rails";
 import { ApplicationService } from "../application.service";
@@ -11,10 +11,11 @@ export class AuthRefreshTokenService extends ApplicationService {
       throw new UnauthorizedError("Refresh token is not valid.");
     }
 
+    // Hashed storage first; a raw match is a token issued before hashing existed (rotated away on use).
     const storedToken = await this.models.password.findFirst({
       where: {
         userId,
-        password: refreshToken,
+        password: { in: [hashToken(refreshToken), refreshToken] },
         type: PasswordType.REFRESH_TOKEN,
         deleted: false,
       },
@@ -42,7 +43,7 @@ export class AuthRefreshTokenService extends ApplicationService {
       this.models.password.create({
         data: {
           userId: user.id,
-          password: newRefreshToken,
+          password: hashToken(newRefreshToken),
           type: PasswordType.REFRESH_TOKEN,
         },
       }),

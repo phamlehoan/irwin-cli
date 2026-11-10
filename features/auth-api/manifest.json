@@ -1,8 +1,13 @@
 {
   "id": "auth-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "JWT API auth for client apps (/api/v1/auth) — independent of session + web auth",
-  "requires": ["database", "api", "swagger"],
+  "requires": [
+    "database",
+    "api",
+    "swagger",
+    "hash"
+  ],
   "npm": {
     "dependencies": {
       "class-validator": "^0.15.1",
@@ -55,9 +60,9 @@
           "content": "const clientAppUrl = (process.env.CLIENT_APP_URL || \"http://localhost:9000\").replace(/\\/$/, \"\");\n\n"
         },
         {
-          "type": "insertAfter",
-          "marker": "  sessionSecret: process.env.SESSION_SECRET || \"change-me-in-production\",",
-          "content": "\n  jwtSecret: process.env.JWT_SECRET || \"change-me-jwt-secret\",\n  clientAppUrl,\n  clientAppHashRouter: process.env.CLIENT_APP_HASH_ROUTER !== \"false\","
+          "type": "insertBefore",
+          "marker": "};",
+          "content": "  jwtSecret: process.env.JWT_SECRET || \"\",\n  clientAppUrl,\n  clientAppHashRouter: process.env.CLIENT_APP_HASH_ROUTER !== \"false\",\n"
         }
       ]
     },
@@ -66,7 +71,7 @@
       "ops": [
         {
           "type": "append",
-          "content": "\n# auth-api (JWT for mobile / SPA clients)\nJWT_SECRET=change-me-jwt-secret\nCLIENT_APP_URL=http://localhost:9000\n# CLIENT_APP_HASH_ROUTER=false\n# CORS_ORIGIN=http://localhost:9000\n"
+          "content": "\n# auth-api (JWT for mobile / SPA clients)\nJWT_SECRET=\nCLIENT_APP_URL=http://localhost:9000\n# CLIENT_APP_HASH_ROUTER=false\n# CORS_ORIGIN=http://localhost:9000\n"
         }
       ]
     },
@@ -80,27 +85,8 @@
         },
         {
           "type": "insertAfter",
-          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
-          "content": "\nimport { initializeHash } from \"./initializers\";"
-        },
-        {
-          "type": "insertAfter",
-          "marker": "// @irwin:initializers",
-          "content": "\n    initializeHash();"
-        },
-        {
-          "type": "insertAfter",
           "marker": "// @irwin:setup-app-middlewares",
-          "content": "\n    this.app.use(\n      cors({\n        origin: process.env.CORS_ORIGIN || true,\n        credentials: true,\n      }),\n    );"
-        }
-      ]
-    },
-    {
-      "file": "configs/initializers/index.ts",
-      "ops": [
-        {
-          "type": "append",
-          "content": "export * from \"./hash\";\n"
+          "content": "\n    this.app.use(\n      cors({\n        // Fail closed: no configured origin means no cross-origin access (never reflect any origin with credentials).\n        origin: (process.env.CORS_ORIGIN || process.env.CLIENT_APP_URL || \"\").split(\",\").map((o) => o.trim()).filter(Boolean),\n        credentials: true,\n      }),\n    );"
         }
       ]
     },
@@ -151,7 +137,10 @@
     }
   ],
   "postInstall": {
-    "scripts": ["db:generate", "db:push"],
+    "scripts": [
+      "db:generate",
+      "db:push"
+    ],
     "messages": [
       "Requires `irwin add api` and `irwin add swagger` before install",
       "Routes include `document` for OpenAPI; ts-rails also auto-infers body from `params(Validator)` when omitted",
@@ -161,10 +150,16 @@
       "GET /api/v1/auth/me — profile (Authorization: Bearer <accessToken>)",
       "PATCH /api/v1/auth/me/profile · POST /api/v1/auth/me/password",
       "Invite / password-reset: GET|POST /api/v1/auth/invite/* and /password-reset/*",
-      "Set JWT_SECRET and CLIENT_APP_URL in .env",
-      "Demo user after db:seed: admin@example.com / password123",
+      "JWT_SECRET is generated into .env on install; set CLIENT_APP_URL (also the CORS allow-list unless CORS_ORIGIN is set)",
+      "Seed an admin with SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env, then db:seed",
       "Works with `irwin add auth` in any order — shared auth-stack files sync after install",
       "Optional: `irwin add auth` for web login (session) + /auth routes"
+    ],
+    "generateSecrets": [
+      "JWT_SECRET"
     ]
-  }
+  },
+  "stackSync": [
+    "auth"
+  ]
 }

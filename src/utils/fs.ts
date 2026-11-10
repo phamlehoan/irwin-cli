@@ -1,3 +1,4 @@
+import { log } from "./logger";
 import fs from "fs";
 import path from "path";
 
@@ -26,4 +27,41 @@ export function copyDir(
 export function writeFileEnsured(filePath: string, content: string): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content, "utf8");
+}
+
+/** Every file under `dir` as forward-slash paths relative to it (shared by the stack-sync helpers). */
+export function walkAllFiles(dir: string, base = ""): string[] {
+  const out: string[] = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const rel = path.join(base, entry.name).replace(/\\/g, "/");
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walkAllFiles(full, rel));
+    else out.push(rel);
+  }
+  return out;
+}
+
+/** Copy `relPaths` from `srcDir` into `projectRoot`, overwriting; `label` names the stack in log lines. */
+export function copyTree(
+  srcDir: string,
+  projectRoot: string,
+  relPaths: string[],
+  dryRun: boolean,
+  label: string,
+): string[] {
+  const copied: string[] = [];
+  for (const rel of relPaths) {
+    const src = path.join(srcDir, rel);
+    if (!fs.existsSync(src)) continue;
+    const dest = path.join(projectRoot, rel);
+    if (dryRun) {
+      log.info(`  would sync  ${rel} (${label})`);
+    } else {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
+      log.success(`  sync  ${rel} (${label})`);
+    }
+    copied.push(rel);
+  }
+  return copied;
 }

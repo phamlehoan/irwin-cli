@@ -1,12 +1,13 @@
 import serverless from "serverless-http";
 import application from "./configs/application";
 
-let handler: ReturnType<typeof serverless>;
+// Cached across warm invocations. (Was `let handler` + `export const handler`: redeclared in the same scope.)
+let cachedHandler: ReturnType<typeof serverless> | undefined;
 
 export const handler = async (event: unknown, context: unknown) => {
-  if (!handler) {
+  if (!cachedHandler) {
     await application.initialize();
-    handler = serverless(application.app);
+    cachedHandler = serverless(application.app);
   }
-  return handler(event, context);
+  return cachedHandler(event as object, context as object);
 };

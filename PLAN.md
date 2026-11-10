@@ -205,10 +205,10 @@ irwin-cli/
 └── PLAN.md                     # file này
 ```
 
-**Monorepo VIZ Framework (tuỳ chọn):**
+**Monorepo mẫu (tuỳ chọn):**
 
 ```text
-VIZ Framework/
+example-monorepo/
 ├── irwin-rails/      # ts-rails publish
 ├── irwin-framework/  # reference
 └── irwin-cli/        # CLI mới

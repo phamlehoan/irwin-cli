@@ -25,10 +25,17 @@ export type ConditionalFileSet = {
   overwrite?: string[];
 };
 
+/** Remove `// line` and block comments so a commented-out call is not mistaken for wiring (IRW-FIX-038). */
+export function stripComments(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
+}
+
 function applicationHasJobsInitializer(projectRoot: string): boolean {
   const appFile = path.join(projectRoot, "configs", "application.ts");
   if (!fs.existsSync(appFile)) return false;
-  const src = fs.readFileSync(appFile, "utf8");
+  const src = stripComments(fs.readFileSync(appFile, "utf8"));
   return (
     src.includes("initializeJobs()") || src.includes("setupJobWorkers()")
   );

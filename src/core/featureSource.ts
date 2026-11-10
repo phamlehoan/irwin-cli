@@ -26,23 +26,35 @@ export function bundledFeatureRoot(featureId: string): string | null {
   return fs.existsSync(manifestAt(root)) ? root : null;
 }
 
-/** Installed plugins under node_modules/@irwin/* with manifest.json. */
+/**
+ * Installed plugins: `@irwin/*` packages with a manifest.json, found in the project's node_modules AND in every
+ * ancestor node_modules (hoisted workspaces, IRW-FIX-044). The nearest copy of a name wins. Symlinked
+ * directories (pnpm) count: `Dirent.isDirectory()` is false for them, so stat is used.
+ */
 export function npmFeatureRoots(projectRoot: string): FeatureSource[] {
   const found: FeatureSource[] = [];
-  const scopedDir = path.join(projectRoot, "node_modules", "@irwin");
-  if (!fs.existsSync(scopedDir)) return found;
-
-  for (const entry of fs.readdirSync(scopedDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const root = path.join(scopedDir, entry.name);
-    if (!fs.existsSync(manifestAt(root))) continue;
-    found.push({
-      kind: "npm",
-      root,
-      packageName: `@irwin/${entry.name}`,
-    });
+  const seen = new Set<string>();
+  let dir = path.resolve(projectRoot);
+  for (;;) {
+    const scopedDir = path.join(dir, "node_modules", "@irwin");
+    if (fs.existsSync(scopedDir)) {
+      for (const entry of fs.readdirSync(scopedDir)) {
+        if (seen.has(entry)) continue;
+        const root = path.join(scopedDir, entry);
+        try {
+          if (!fs.statSync(root).isDirectory()) continue;
+        } catch {
+          continue;
+        }
+        if (!fs.existsSync(manifestAt(root))) continue;
+        seen.add(entry);
+        found.push({ kind: "npm", root, packageName: `@irwin/${entry}` });
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
-
   return found;
 }
 
@@ -57,8 +69,11 @@ export function resolveFeatureSource(
 
   if (projectRoot) {
     for (const src of npmFeatureRoots(projectRoot)) {
-      const manifest = readManifestFile(src.root);
-      if (manifest.id === featureId) return src;
+      try {
+        if (readManifestFile(src.root).id === featureId) return src;
+      } catch {
+        // A broken third-party manifest must not hide the other packs.
+      }
     }
   }
 

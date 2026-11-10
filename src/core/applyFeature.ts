@@ -8,7 +8,10 @@ import {
   getJobsInstallContext,
   matchesWhen,
   resolveFeatureManifest,
+  type ResolvedFeatureManifest,
 } from "./installContext";
+import { buildArtifacts } from "./artifacts";
+import { restoreSnapshot, takeSnapshot, type ProjectSnapshot } from "./snapshot";
 import {
   isFeatureEnabled,
   readRegistry,
@@ -16,11 +19,11 @@ import {
   type FeatureEntry,
 } from "./registry";
 import { copyLocalesFromEnabledFeatures } from "./localeSync";
-import { collectPatchBackups } from "./removeFeature";
 import { mergePackageJsonDeps } from "./template";
+import { mergeNpmIntoProject } from "./workspace";
 import { syncAuthStackFiles } from "./authStackSync";
 import { syncRbacStackFiles } from "./rbacStackSync";
-import { syncHomeFeatures } from "./syncHomeFeatures";
+import { syncHomeFeaturesIfEnabled } from "./syncHomeFeatures";
 
 export type ApplyFeatureOptions = {
   dryRun?: boolean;
@@ -120,6 +123,31 @@ export function applyFeature(
     }
   }
 
+  // IRW-FIX-035: everything below either completes or leaves the tree exactly as it was.
+  const snap = dryRun ? null : takeSnapshot(projectRoot);
+  try {
+    return applyFeatureBody(projectRoot, manifest, resolved, registry, options, snap);
+  } catch (e) {
+    if (snap) {
+      const { restored, removed } = restoreSnapshot(snap);
+      log.error(
+        `Install of "${manifest.id}" failed — rolled back (${restored} file(s) restored, ${removed} removed).`,
+      );
+    }
+    throw e;
+  }
+}
+
+function applyFeatureBody(
+  projectRoot: string,
+  manifest: FeatureManifest,
+  resolved: ResolvedFeatureManifest,
+  registry: ReturnType<typeof readRegistry>,
+  options: ApplyFeatureOptions,
+  snap: ProjectSnapshot | null,
+): ApplyFeatureResult {
+  const { dryRun = false, force = false } = options;
+  const { installContext } = resolved;
   const source = resolveFeatureSource(manifest.id, projectRoot);
   const copied: string[] = [];
 
@@ -156,20 +184,13 @@ export function applyFeature(
     );
   }
 
-  if (
-    ["auth", "auth-api", "admin-rbac", "admin-rbac-api"].includes(manifest.id)
-  ) {
+  if (manifest.stackSync?.includes("auth")) {
     copied.push(...syncAuthStackFiles(projectRoot, dryRun, manifest.id));
   }
 
-  if (["admin-rbac", "admin-rbac-api"].includes(manifest.id)) {
+  if (manifest.stackSync?.includes("rbac")) {
     copied.push(...syncRbacStackFiles(projectRoot, dryRun, manifest.id));
   }
-
-  const patchBackups =
-    resolved.patches && resolved.patches.length > 0
-      ? collectPatchBackups(projectRoot, resolved.patches)
-      : [];
 
   const patchResults =
     resolved.patches && resolved.patches.length > 0
@@ -185,33 +206,39 @@ export function applyFeature(
       const msg = `  ${dryRun ? "would patch" : "patch"}   ${pr.file} (${pr.applied} op(s))`;
       dryRun ? log.info(msg) : log.success(msg);
     }
-    if (pr.skipped > 0) {
-      log.warn(`  patch   ${pr.file} (${pr.skipped} marker(s) missing)`);
+    if (pr.alreadyPresent > 0) {
+      log.info(`  patch   ${pr.file} (${pr.alreadyPresent} op(s) already present)`);
     }
   }
 
   if (!dryRun) {
     if (manifest.npm) {
-      mergePackageJsonDeps(
-        path.join(projectRoot, "package.json"),
-        manifest.npm.dependencies,
-        manifest.npm.devDependencies,
-        manifest.npm.scripts,
-        manifest.npm.pnpmOverrides,
-      );
+      mergeNpmIntoProject(projectRoot, manifest.npm, mergePackageJsonDeps);
     }
 
-    const artifacts = {
-      copiedFiles: copied,
-      patchBackups,
-    };
-
     const existingIdx = registry.features.findIndex((f) => f.id === manifest.id);
+    const artifacts = buildArtifacts({
+      projectRoot,
+      snap: snap!,
+      copied,
+      patchResults,
+      previous: existingIdx >= 0 ? registry.features[existingIdx].artifacts : undefined,
+      featureId: manifest.id,
+    });
+    const addedDeps = manifest.npm
+      ? {
+          dependencies: Object.keys(manifest.npm.dependencies ?? {}),
+          devDependencies: Object.keys(manifest.npm.devDependencies ?? {}),
+          scripts: Object.keys(manifest.npm.scripts ?? {}),
+        }
+      : undefined;
+
     if (existingIdx >= 0) {
       registry.features[existingIdx] = {
         ...registry.features[existingIdx],
         version: manifest.version,
         artifacts,
+        addedDeps,
       };
     } else {
       registry.features.push({
@@ -219,11 +246,12 @@ export function applyFeature(
         version: manifest.version,
         addedAt: new Date().toISOString(),
         artifacts,
+        addedDeps,
       });
     }
     writeRegistry(projectRoot, registry);
-    const synced = syncHomeFeatures(projectRoot);
-    log.info(`  sync home catalog (${synced.featureCount} packs)`);
+    const synced = syncHomeFeaturesIfEnabled(projectRoot);
+    if (synced) log.info(`  sync home catalog (${synced.featureCount} packs)`);
   }
 
   return { copied, patchResults };

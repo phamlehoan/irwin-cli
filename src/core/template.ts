@@ -47,7 +47,9 @@ function copyWithRender(
     for (const entry of fs.readdirSync(src)) {
       if (shouldSkip(entry)) continue;
       const srcChild = path.join(src, entry);
-      const destName = renderString(entry, vars, { strict: true });
+      // npm never publishes a file called .gitignore, so the template stores it as `_gitignore` (IRW-FIX-046).
+      const destName =
+        entry === "_gitignore" ? ".gitignore" : renderString(entry, vars, { strict: true });
       copyWithRender(srcChild, path.join(dest, destName), vars);
     }
     return;
@@ -66,7 +68,9 @@ function copyWithRender(
     ".pug",
   ]);
   const isText =
-    textExtensions.has(ext) || path.basename(src).startsWith(".env");
+    textExtensions.has(ext) ||
+    path.basename(src).startsWith(".env") ||
+    path.basename(src) === "_gitignore";
 
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   if (isText) {

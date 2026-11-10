@@ -4,52 +4,21 @@ import { getIrwinCliRoot } from "../core/packageRoot";
 import { loadManifest, listFeatureIds } from "../core/manifest";
 import { isFeatureEnabled, readRegistry } from "../core/registry";
 import { resolveIrwinRoot } from "../core/projectRoot";
+import { semverGte } from "../core/semver";
+import {
+  checkPackBlocks,
+  readInstalledVersion,
+  resolveInstalledPackageJson,
+  type Check,
+  type CheckLevel,
+} from "../core/doctorChecks";
 import {
   homeFeaturesNeedSync,
+  homeStoreEnabled,
   syncHomeFeatures,
 } from "../core/syncHomeFeatures";
 
-type Level = "ok" | "warn" | "fail";
-
-type Check = { level: Level; message: string };
-
-function parseSemver(v: string): [number, number, number] | null {
-  const m = v.trim().replace(/^v/, "").match(/^(\d+)\.(\d+)\.(\d+)/);
-  if (!m) return null;
-  return [Number(m[1]), Number(m[2]), Number(m[3])];
-}
-
-function semverGte(a: string, b: string): boolean {
-  const pa = parseSemver(a);
-  const pb = parseSemver(b);
-  if (!pa || !pb) return true;
-  for (let i = 0; i < 3; i++) {
-    if (pa[i] > pb[i]) return true;
-    if (pa[i] < pb[i]) return false;
-  }
-  return true;
-}
-
-function readInstalledVersion(
-  projectRoot: string,
-  packageName: string,
-): string | null {
-  const pkgPath = path.join(
-    projectRoot,
-    "node_modules",
-    packageName,
-    "package.json",
-  );
-  if (!fs.existsSync(pkgPath)) return null;
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
-      version?: string;
-    };
-    return pkg.version ?? null;
-  } catch {
-    return null;
-  }
-}
+type Level = CheckLevel;
 
 function envHasKey(projectRoot: string, key: string): boolean {
   for (const file of [".env", ".env.local"]) {
@@ -67,7 +36,12 @@ function markerPresent(projectRoot: string, relFile: string, marker: string): bo
   return fs.readFileSync(file, "utf8").includes(marker);
 }
 
-export function runDoctor(): void {
+export type DoctorOptions = {
+  /** Allow doctor to repair things (e.g. regenerate the home feature catalog). Read-only by default. */
+  fix?: boolean;
+};
+
+export function runDoctor(options: DoctorOptions = {}): void {
   const checks: Check[] = [];
   const cliPkg = JSON.parse(
     fs.readFileSync(path.join(getIrwinCliRoot(), "package.json"), "utf8"),
@@ -138,7 +112,7 @@ export function runDoctor(): void {
     });
   }
 
-  if (!fs.existsSync(path.join(projectRoot, "node_modules", "tsx"))) {
+  if (!resolveInstalledPackageJson(projectRoot, "tsx")) {
     checks.push({
       level: "warn",
       message: "tsx not found — dev script may fail (pnpm add -D tsx)",
@@ -174,9 +148,14 @@ export function runDoctor(): void {
       const manifest = loadManifest(feat.id, projectRoot);
       for (const req of manifest.requires ?? []) {
         if (!isFeatureEnabled(registry, req)) {
+          // A pack installed from an older manifest may predate a new requirement (e.g. session -> hash):
+          // that is worth a warning, not a failing exit code.
+          const legacy = feat.version !== manifest.version;
           checks.push({
-            level: "fail",
-            message: `Feature "${feat.id}" requires "${req}" (not enabled)`,
+            level: legacy ? "warn" : "fail",
+            message: legacy
+              ? `Feature "${feat.id}" (v${feat.version}) predates requirement "${req}" of v${manifest.version}`
+              : `Feature "${feat.id}" requires "${req}" (not enabled)`,
           });
         }
       }
@@ -184,6 +163,8 @@ export function runDoctor(): void {
       /* ignore */
     }
   }
+
+  checks.push(...checkPackBlocks(projectRoot, registry));
 
   if (isFeatureEnabled(registry, "database")) {
     const schema = path.join(projectRoot, "configs", "db", "schema.prisma");
@@ -231,12 +212,19 @@ export function runDoctor(): void {
     }
   }
 
-  if (homeFeaturesNeedSync(projectRoot)) {
-    const { featureCount } = syncHomeFeatures(projectRoot);
-    checks.push({
-      level: "ok",
-      message: `Home feature catalog synced (${featureCount} packs)`,
-    });
+  if (homeStoreEnabled(projectRoot) && homeFeaturesNeedSync(projectRoot)) {
+    if (options.fix) {
+      const { featureCount } = syncHomeFeatures(projectRoot);
+      checks.push({
+        level: "ok",
+        message: `Home feature catalog synced (${featureCount} packs)`,
+      });
+    } else {
+      checks.push({
+        level: "warn",
+        message: "Home feature catalog is out of date — run `irwin doctor --fix`",
+      });
+    }
   }
 
   printReport(checks);

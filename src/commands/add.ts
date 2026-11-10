@@ -1,5 +1,6 @@
 import { applyFeature } from "../core/applyFeature";
-import { loadManifest } from "../core/manifest";
+import { loadManifest, type FeatureManifest } from "../core/manifest";
+import { withRegistryLock } from "../core/registry";
 import { runFeaturePostInstall } from "../core/postInstall";
 import { resolveIrwinRoot } from "../core/projectRoot";
 import { log } from "../utils/logger";
@@ -25,6 +26,17 @@ export async function runAdd(
 
   const projectRoot = resolveIrwinRoot();
   const manifest = loadManifest(featureId, projectRoot);
+  // A dry run writes nothing, so it does not need (or block on) the project lock.
+  if (options.dryRun) return addLocked(projectRoot, featureId, manifest, options);
+  await withRegistryLock(projectRoot, () => addLocked(projectRoot, featureId, manifest, options));
+}
+
+async function addLocked(
+  projectRoot: string,
+  featureId: string,
+  manifest: FeatureManifest,
+  options: AddOptions,
+): Promise<void> {
 
   log.info(
     options.dryRun

@@ -1,10 +1,13 @@
 import env from "@configs/env";
-import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
 import session from "express-session";
 import { RailsApplication } from "ts-rails";
 
 export function initializeSession(): RequestHandler {
+  // IRW-FIX-047: no public fallback secret; a missing value must stop the app.
+  if (!env.sessionSecret) {
+    throw new Error("SESSION_SECRET is not set. Add a long random value to .env (irwin add session generates one).");
+  }
   const sessionMiddleware = session({
     secret: env.sessionSecret,
     resave: false,
@@ -18,11 +21,4 @@ export function initializeSession(): RequestHandler {
 
   RailsApplication.sessionMiddleware = sessionMiddleware;
   return sessionMiddleware;
-}
-
-export function initializeHash() {
-  RailsApplication.hasher = {
-    hash: async (password) => bcrypt.hash(password, 10),
-    verify: async (password, hash) => bcrypt.compare(password, hash),
-  };
 }

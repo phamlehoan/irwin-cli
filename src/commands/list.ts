@@ -20,8 +20,17 @@ export function runList(): void {
   const ids = listFeatureIds(projectRoot);
 
   console.log("Feature packs:\n");
+  const broken: Array<{ id: string; error: string }> = [];
   for (const id of ids) {
-    const manifest = loadManifest(id, projectRoot);
+    let manifest;
+    try {
+      manifest = loadManifest(id, projectRoot);
+    } catch (e) {
+      // IRW-FIX-030: one broken pack must not take `irwin list` down.
+      broken.push({ id, error: e instanceof Error ? e.message : String(e) });
+      console.log(`  [!] ${id}  (invalid manifest — see below)`);
+      continue;
+    }
     const mark = enabled.has(id) ? "[x]" : "[ ]";
     const req =
       manifest.requires && manifest.requires.length > 0
@@ -42,4 +51,10 @@ export function runList(): void {
     }
   }
   console.log("");
+  if (broken.length > 0) {
+    console.error(`${broken.length} feature pack(s) have an invalid manifest:`);
+    for (const b of broken) console.error(`\n[${b.id}] ${b.error}`);
+    console.error("");
+    process.exitCode = 1;
+  }
 }

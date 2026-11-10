@@ -2,7 +2,12 @@
   "id": "admin-rbac-api",
   "version": "1.0.0",
   "description": "Feature RBAC REST API (/api/v1/admin/*) — no web admin UI",
-  "requires": ["database", "api", "swagger", "auth-api"],
+  "requires": [
+    "database",
+    "api",
+    "swagger",
+    "auth-api"
+  ],
   "npm": {
     "dependencies": {
       "class-validator": "^0.15.1",
@@ -45,7 +50,9 @@
     },
     {
       "file": "configs/enum/index.ts",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "insertAfter",
@@ -128,15 +135,23 @@
   ],
   "postInstall": {
     "install": true,
-    "scripts": ["db:generate", "db:push", "db:seed:rbac"],
+    "scripts": [
+      "db:generate",
+      "db:push",
+      "db:seed:rbac"
+    ],
     "messages": [
       "Requires: database, api, swagger, auth-api (install auth-api first)",
       "RBAC REST: /api/v1/admin/users · /roles · /features (Bearer JWT)",
       "OpenAPI: GET /docs — tags Admin Users, Admin Roles, Admin Features",
       "Permission codes: USM (users), RAP (roles/features) — same as admin-rbac web",
-      "Run pnpm db:seed:rbac after db:seed — assigns ADMIN role to admin@example.com",
+      "Run pnpm db:seed:rbac after db:seed — assigns ADMIN role to SEED_ADMIN_EMAIL",
       "Works with `irwin add admin-rbac` in any order — shared admin-rbac-stack syncs middleware",
       "Optional: `irwin add admin` + `irwin add admin-rbac` for web UI alongside API"
     ]
-  }
+  },
+  "stackSync": [
+    "auth",
+    "rbac"
+  ]
 }

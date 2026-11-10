@@ -1,14 +1,18 @@
+import fs from "fs";
+import path from "path";
 import { loadManifest } from "../core/manifest";
 import { resolveIrwinRoot } from "../core/projectRoot";
 import { revertFeatureArtifacts } from "../core/removeFeature";
 import {
   isFeatureEnabled,
   readRegistry,
+  withRegistryLockSync,
   writeRegistry,
   type FeatureEntry,
 } from "../core/registry";
 import { log } from "../utils/logger";
-import { syncHomeFeatures } from "../core/syncHomeFeatures";
+import { restoreSnapshot, takeSnapshot } from "../core/snapshot";
+import { syncHomeFeaturesIfEnabled } from "../core/syncHomeFeatures";
 
 export type RemoveOptions = {
   dryRun?: boolean;
@@ -49,6 +53,11 @@ export function runRemove(
   options: RemoveOptions = {},
 ): void {
   const projectRoot = resolveIrwinRoot();
+  if (options.dryRun) return removeLocked(projectRoot, featureId, options);
+  withRegistryLockSync(projectRoot, () => removeLocked(projectRoot, featureId, options));
+}
+
+function removeLocked(projectRoot: string, featureId: string, options: RemoveOptions): void {
   const registry = readRegistry(projectRoot);
 
   if (!isFeatureEnabled(registry, featureId)) {
@@ -58,6 +67,7 @@ export function runRemove(
 
   loadManifest(featureId, projectRoot);
   const entry = findEntry(registry, featureId);
+  const others = registry.features.filter((f) => f.id !== featureId);
 
   const enabledIds = new Set(registry.features.map((f) => f.id));
   const dependents = findDependents(featureId, projectRoot, enabledIds);
@@ -78,7 +88,7 @@ export function runRemove(
   if (options.dryRun) {
     log.info(`[dry-run] Would remove "${featureId}" from .irwin/features.json`);
     if (!options.keepFiles) {
-      revertFeatureArtifacts(projectRoot, entry?.artifacts, true);
+      revertFeatureArtifacts(projectRoot, entry?.artifacts, true, { others });
     } else {
       log.info("  (--keep-files) Copied files and patches would be left as-is.");
     }
@@ -92,13 +102,33 @@ export function runRemove(
           "Remove copied files and patch edits manually, or use --keep-files.",
       );
     } else {
-      revertFeatureArtifacts(projectRoot, entry.artifacts, false);
+      const snap = takeSnapshot(projectRoot);
+      try {
+        const res = revertFeatureArtifacts(projectRoot, entry.artifacts, false, { others });
+        if (res.unreversedBlocks.length > 0 || res.keptFiles.length > 0) {
+          console.log(
+            "\nSome files were left in place on purpose (see warnings above). Review them before committing.",
+          );
+        }
+      } catch (e) {
+        restoreSnapshot(snap);
+        throw e;
+      }
     }
   }
 
   registry.features = registry.features.filter((f) => f.id !== featureId);
   writeRegistry(projectRoot, registry);
-  syncHomeFeatures(projectRoot);
+  if (!options.keepFiles) {
+    // Backups of overwritten originals have served their purpose once the pack is reverted.
+    fs.rmSync(path.join(projectRoot, ".irwin", "backups", featureId), { recursive: true, force: true });
+    try {
+      fs.rmdirSync(path.join(projectRoot, ".irwin", "backups"));
+    } catch {
+      /* other packs still have backups */
+    }
+  }
+  syncHomeFeaturesIfEnabled(projectRoot);
 
   log.success(`Removed "${featureId}" from registry.`);
   if (options.keepFiles) {

@@ -2,7 +2,7 @@
   "id": "ai",
   "version": "1.0.0",
   "description": "Google Gemini chat API — POST /api/v1/ai/chat",
-  "requires": ["api"],
+  "requires": ["api", "auth-api"],
   "npm": {
     "dependencies": {
       "@google/generative-ai": "^0.24.0"
@@ -86,7 +86,7 @@
     "messages": [
       "Set GOOGLE_AI_API_KEY in .env (Google AI Studio)",
       "POST /api/v1/ai/chat — Bearer required; body: { \"messages\": [{ \"role\": \"user\", \"content\": \"Hello\" }] }",
-      "Requires irwin add api first"
+      "Requires irwin add api and auth-api first (the route needs a Bearer token)"
     ]
   }
 }

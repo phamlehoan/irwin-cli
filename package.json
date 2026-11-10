@@ -1,6 +1,6 @@
 {
   "name": "irwin-cli",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Irwin project scaffolder and feature packs (irwin new, irwin add, irwin g)",
   "license": "MIT",
   "type": "commonjs",
@@ -11,13 +11,17 @@
   },
   "files": [
     "dist",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
     "templates",
     "features"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
-    "test": "npm run build && node --test dist/core/patchEngine.test.js dist/core/installContext.test.js dist/core/removeFeature.test.js dist/core/authStackSync.test.js dist/core/rbacStackSync.test.js dist/core/template.test.js",
+    "test": "npm run build && node scripts/run-tests.mjs",
+    "test:roundtrip": "npm run build && node scripts/roundtrip-offline.mjs",
     "test:e2e": "npm run build && node scripts/e2e-smoke.mjs"
   },
   "engines": {

@@ -52,7 +52,8 @@ program
 program
   .command("new")
   .description("Create a new Irwin app (minimal HTTP, Rails-like)")
-  .argument("<app-name>", "Directory name for the new app")
+  .argument("<dir>", "Directory for the new app (a path such as services/inv is fine)")
+  .option("--name <package-name>", "package.json name, may be scoped (@scope/x); default: directory name")
   .option(
     "-pm, --package-manager <pm>",
     "Package manager: pnpm | npm | yarn",
@@ -65,6 +66,8 @@ program
   )
   .option("--skip-install", "Do not install dependencies")
   .option("--skip-dev", "Install only; do not start the dev server")
+  .option("--no-start", "Do not start the dev server (default inside a workspace)")
+  .option("--with-home", "Generate the optional feature-store home page")
   .option("--api-only", "JSON responses only (no Pug views)")
   .action(async (appName, options) => {
     try {
@@ -74,6 +77,9 @@ program
         tsRailsVersion: options.tsRailsVersion,
         skipInstall: options.skipInstall,
         skipDev: options.skipDev,
+        noStart: options.start === false,
+        name: options.name,
+        withHome: options.withHome,
         apiOnly: options.apiOnly,
       });
     } catch (e) {
@@ -110,9 +116,17 @@ program
   .argument("<name>", "Resource or class name")
   .argument("[fields...]", "field:type pairs")
   .option("--api", "API-only scaffold/resource")
+  .option("--force", "Overwrite files that already exist")
+  .option("--skip", "Keep files that already exist and exit 0")
+  .option("--dry-run", "Show what would be written, write nothing")
   .action(async (type, name, fields, options) => {
     try {
-      await runGenerate(type, name, fields ?? [], options.api);
+      await runGenerate(type, name, fields ?? [], {
+        api: options.api,
+        force: options.force,
+        skip: options.skip,
+        dryRun: options.dryRun,
+      });
     } catch (e) {
       log.error(e instanceof Error ? e.message : String(e));
       process.exit(1);
@@ -130,10 +144,11 @@ program.command("list").description("List feature packs and enabled state").acti
 
 program
   .command("doctor")
-  .description("Check Irwin project setup (deps, env, features, markers)")
-  .action(() => {
+  .description("Check Irwin project setup (deps, env, features, markers). Read-only unless --fix")
+  .option("--fix", "Repair what can be repaired (e.g. regenerate the home feature catalog)")
+  .action((options) => {
     try {
-      runDoctor();
+      runDoctor({ fix: options.fix });
     } catch (e) {
       log.error(e instanceof Error ? e.message : String(e));
       process.exit(1);

@@ -2,6 +2,7 @@ import fs from "fs";
 import { NextFunction, Request, Response } from "express";
 import i18next from "i18next";
 import path from "path";
+import { rootPath } from "@lib/utils/path";
 
 const SUPPORTED_LOCALES = ["en", "vi"] as const;
 type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
@@ -9,7 +10,7 @@ type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 let initialized = false;
 
 function loadLocaleTree(lng: string): Record<string, unknown> {
-  const dir = path.join(process.cwd(), "configs", "locales", lng);
+  const dir = rootPath("configs", "locales", lng);
   const merged: Record<string, unknown> = {};
   if (!fs.existsSync(dir)) return merged;
   for (const file of fs.readdirSync(dir)) {

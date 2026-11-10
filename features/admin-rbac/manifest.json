@@ -2,7 +2,11 @@
   "id": "admin-rbac",
   "version": "1.4.0",
   "description": "Feature-based RBAC (AM/USM/RAP) — optional JM job admin when jobs pack + env detected",
-  "requires": ["admin", "database", "vue"],
+  "requires": [
+    "admin",
+    "database",
+    "vue"
+  ],
   "npm": {
     "dependencies": {
       "class-validator": "^0.15.1",
@@ -22,7 +26,9 @@
   "conditionalFiles": [
     {
       "from": "files-jobs",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "overwrite": [
         "configs/routes/admin/index.ts",
         "configs/db/seeders/features.ts",
@@ -52,13 +58,16 @@
         {
           "type": "insertBefore",
           "marker": "/** Flash categories",
+          "skipIfContains": "export enum Feature",
           "content": "export enum Feature {\n  AdministrationManagement = \"AM\",\n  UserManagement = \"USM\",\n  RoleAndPermission = \"RAP\",\n}\n\n"
         }
       ]
     },
     {
       "file": "configs/enum/index.ts",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "insertAfter",
@@ -97,7 +106,9 @@
     },
     {
       "file": "app/controllers/index.ts",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "append",
@@ -116,7 +127,9 @@
     },
     {
       "file": "app/controllers/admin/index.ts",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "append",
@@ -155,6 +168,7 @@
         {
           "type": "insertAfter",
           "marker": "    \"users\": \"Users\"\n  }\n}",
+          "skipIfContains": "\"admin_management\"",
           "content": ",\n    \"roles\": \"Roles\",\n    \"features\": \"Features\",\n    \"admin_management\": \"Administration\",\n    \"back_home\": \"Back to site\""
         }
       ]
@@ -199,7 +213,9 @@
     },
     {
       "file": "app/views/layouts/admin/partials/sidebar.pug",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "insertAfter",
@@ -210,7 +226,9 @@
     },
     {
       "file": "configs/locales/en/admin.json",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "insertAfter",
@@ -226,7 +244,9 @@
     },
     {
       "file": "configs/locales/vi/admin.json",
-      "when": { "jobsEnabled": true },
+      "when": {
+        "jobsEnabled": true
+      },
       "ops": [
         {
           "type": "insertAfter",
@@ -262,7 +282,12 @@
   ],
   "postInstall": {
     "install": true,
-    "scripts": ["db:generate", "db:push", "db:seed:rbac", "build:client"],
+    "scripts": [
+      "db:generate",
+      "db:push",
+      "db:seed:rbac",
+      "build:client"
+    ],
     "messages": [
       "Requires: admin, database, vue. API-only: `irwin add admin-rbac-api` (no admin/vue).",
       "Jobs UI: run `irwin add jobs` first (reads .env JOBS_USE_REDIS).",
@@ -270,5 +295,9 @@
       "Role detail: Vue permission matrix — run pnpm build:client after changes",
       "Login: auth/db:seed user, then pnpm run db:seed:rbac for ADMIN role"
     ]
-  }
+  },
+  "stackSync": [
+    "auth",
+    "rbac"
+  ]
 }

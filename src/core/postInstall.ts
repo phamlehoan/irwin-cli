@@ -4,23 +4,22 @@ import { log } from "../utils/logger";
 import {
   assertPackageManagerInstalled,
   detectPackageManager,
-  installCommand,
   runCommand,
   runScriptCommand,
   type PackageManager,
 } from "../utils/packageManager";
 import type { FeatureManifest } from "./manifest";
 import { readRegistry } from "./registry";
+import { ensureGeneratedSecrets } from "./secrets";
 import { mergePackageJsonDeps } from "./template";
+import { mergeNpmIntoProject, planInstall } from "./workspace";
 
 /** vue@3.5.36 on npm ships broken workspace:* deps — pin before install. */
 function ensureVuePin(projectRoot: string): void {
-  mergePackageJsonDeps(
-    path.join(projectRoot, "package.json"),
-    { vue: "3.5.35" },
-    undefined,
-    undefined,
-    { vue: "3.5.35" },
+  mergeNpmIntoProject(
+    projectRoot,
+    { dependencies: { vue: "3.5.35" }, pnpmOverrides: { vue: "3.5.35" } },
+    mergePackageJsonDeps,
   );
 }
 
@@ -58,6 +57,8 @@ export async function runFeaturePostInstall(
 ): Promise<void> {
   const pm = resolvePackageManager(projectRoot);
   const post = manifest.postInstall;
+  const secrets = ensureGeneratedSecrets(projectRoot, post?.generateSecrets ?? []);
+  if (secrets.length > 0) log.info(`  generated  ${secrets.join(", ")} in .env`);
   const npmDeps = hasNpmDeps(manifest);
   const shouldInstall =
     !options.skipInstall && npmDeps && (post?.install ?? true);
@@ -68,11 +69,12 @@ export async function runFeaturePostInstall(
     }
     const version = await assertPackageManagerInstalled(pm);
     log.info(`Using ${pm} ${version}`);
-    const install = installCommand(pm);
+    // IRW-FIX-042: inside a workspace only this package (and what it depends on) is installed.
+    const install = planInstall(pm, projectRoot);
     log.info(
-      `Installing dependencies (${install.cmd} ${install.args.join(" ") || ""})...`,
+      `Installing dependencies (${install.cmd} ${install.args.join(" ") || ""}) in ${install.cwd}...`,
     );
-    const code = await runCommand(install.cmd, install.args, projectRoot);
+    const code = await runCommand(install.cmd, install.args, install.cwd);
     if (code !== 0) {
       throw new Error(
         `${install.cmd} install failed (exit ${code}). Fix errors, then run \`${pm} install\` in the project.`,
@@ -81,8 +83,16 @@ export async function runFeaturePostInstall(
     log.success("Dependencies installed.");
   }
 
-  if (manifest.id === "database") {
+  if (post?.createEnvFile) {
     ensureDotEnv(projectRoot);
+  }
+
+  if (options.skipInstall && (post?.scripts?.length ?? 0) > 0) {
+    // IRW-FIX-037: --skip-install means no install AND no post-install scripts.
+    log.info(
+      `Skipping post-install scripts (${post!.scripts!.join(", ")}) because of --skip-install. Run them manually.`,
+    );
+    return;
   }
 
   for (const script of post?.scripts ?? []) {

@@ -13,8 +13,13 @@ RailsApplication.hasher = {
 };
 
 async function main() {
-  const email = "admin@example.com";
-  const password = "password123";
+  // IRW-FIX-047: no built-in credentials. The operator supplies them (irwin add database generates the password into .env).
+  const email = (process.env.SEED_ADMIN_EMAIL || "").trim().toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD || "";
+  if (!email || password.length < 12) {
+    console.warn("Skipped admin seed: set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD (min 12 chars) in .env.");
+    return;
+  }
   const hashed = await Security.hashPassword(password);
 
   const user = await models.user.upsert({
@@ -50,7 +55,7 @@ async function main() {
     },
   });
 
-  console.log(`Seeded user ${email} / ${password}`);
+  console.log(`Seeded user ${email}`);
 }
 
 main()

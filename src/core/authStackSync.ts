@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getIrwinCliRoot } from "./packageRoot";
 import { log } from "../utils/logger";
+import { copyTree, walkAllFiles } from "../utils/fs";
 import { isFeatureEnabled, readRegistry } from "./registry";
 
 export type AuthStackContext = {
@@ -31,43 +32,6 @@ export function getAuthStackContext(projectRoot: string): AuthStackContext {
 
 function authStackRoot(): string {
   return path.join(getIrwinCliRoot(), "features", "auth-stack");
-}
-
-function copyTree(
-  srcDir: string,
-  projectRoot: string,
-  relPaths: string[],
-  dryRun: boolean,
-): string[] {
-  const copied: string[] = [];
-  for (const rel of relPaths) {
-    const src = path.join(srcDir, rel);
-    if (!fs.existsSync(src)) continue;
-    const dest = path.join(projectRoot, rel);
-    if (dryRun) {
-      log.info(`  would sync  ${rel} (auth-stack)`);
-    } else {
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(src, dest);
-      log.success(`  sync  ${rel} (auth-stack)`);
-    }
-    copied.push(rel);
-  }
-  return copied;
-}
-
-function walkAllFiles(dir: string, base = ""): string[] {
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const rel = path.join(base, entry.name).replace(/\\/g, "/");
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walkAllFiles(full, rel));
-    } else {
-      out.push(rel);
-    }
-  }
-  return out;
 }
 
 /**
@@ -101,11 +65,11 @@ export function syncAuthStackFiles(
     ? walkAllFiles(sharedDir)
     : STACK_SHARED;
 
-  const copied = copyTree(sharedDir, projectRoot, sharedPaths, dryRun);
+  const copied = copyTree(sharedDir, projectRoot, sharedPaths, dryRun, "auth-stack");
 
   if (fs.existsSync(path.join(variantDir, STACK_CURRENT_USER))) {
     copied.push(
-      ...copyTree(variantDir, projectRoot, [STACK_CURRENT_USER], dryRun),
+      ...copyTree(variantDir, projectRoot, [STACK_CURRENT_USER], dryRun, "auth-stack"),
     );
   }
 

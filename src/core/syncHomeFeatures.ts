@@ -164,6 +164,27 @@ export function syncHomeFeatures(
   };
 }
 
+/**
+ * IRW-FIX-039: the "feature store" home page is opt-in (`irwin new --with-home`). A project has it when the
+ * registry says so, or when it already has the generated runtime file (apps created by irwin-cli <= 0.0.4).
+ */
+export function homeStoreEnabled(projectRoot: string): boolean {
+  if (fs.existsSync(path.join(projectRoot, RUNTIME_REL))) return true;
+  try {
+    return readRegistry(projectRoot).withHome === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Regenerate the catalog only for projects that have the home store; returns null otherwise. */
+export function syncHomeFeaturesIfEnabled(
+  projectRoot: string,
+  options: SyncHomeFeaturesOptions = {},
+): ReturnType<typeof syncHomeFeatures> | null {
+  return homeStoreEnabled(projectRoot) ? syncHomeFeatures(projectRoot, options) : null;
+}
+
 /** True when catalog is missing or enabled set may be out of date (registry newer than catalog). */
 export function homeFeaturesNeedSync(projectRoot: string): boolean {
   const catalogFile = path.join(projectRoot, CATALOG_REL);

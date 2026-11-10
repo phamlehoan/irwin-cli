@@ -3,6 +3,7 @@ import path from "path";
 import { getJobsInstallContext } from "./installContext";
 import { getIrwinCliRoot } from "./packageRoot";
 import { log } from "../utils/logger";
+import { copyTree, walkAllFiles } from "../utils/fs";
 import { isFeatureEnabled, readRegistry } from "./registry";
 
 export type RbacStackContext = {
@@ -25,43 +26,6 @@ export function getRbacStackContext(projectRoot: string): RbacStackContext {
 
 function rbacStackRoot(): string {
   return path.join(getIrwinCliRoot(), "features", "admin-rbac-stack");
-}
-
-function walkAllFiles(dir: string, base = ""): string[] {
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const rel = path.join(base, entry.name).replace(/\\/g, "/");
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walkAllFiles(full, rel));
-    } else {
-      out.push(rel);
-    }
-  }
-  return out;
-}
-
-function copyTree(
-  srcDir: string,
-  projectRoot: string,
-  relPaths: string[],
-  dryRun: boolean,
-): string[] {
-  const copied: string[] = [];
-  for (const rel of relPaths) {
-    const src = path.join(srcDir, rel);
-    if (!fs.existsSync(src)) continue;
-    const dest = path.join(projectRoot, rel);
-    if (dryRun) {
-      log.info(`  would sync  ${rel} (admin-rbac-stack)`);
-    } else {
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(src, dest);
-      log.success(`  sync  ${rel} (admin-rbac-stack)`);
-    }
-    copied.push(rel);
-  }
-  return copied;
 }
 
 /**
@@ -88,13 +52,13 @@ export function syncRbacStackFiles(
   const root = rbacStackRoot();
   const sharedDir = path.join(root, "files-shared");
   const sharedPaths = fs.existsSync(sharedDir) ? walkAllFiles(sharedDir) : [];
-  const copied = copyTree(sharedDir, projectRoot, sharedPaths, dryRun);
+  const copied = copyTree(sharedDir, projectRoot, sharedPaths, dryRun, "admin-rbac-stack");
 
   const jobsCtx = getJobsInstallContext(projectRoot);
   if (jobsCtx.jobsEnabled) {
     const jobsDir = path.join(root, "files-jobs");
     const jobsPaths = fs.existsSync(jobsDir) ? walkAllFiles(jobsDir) : [];
-    copied.push(...copyTree(jobsDir, projectRoot, jobsPaths, dryRun));
+    copied.push(...copyTree(jobsDir, projectRoot, jobsPaths, dryRun, "admin-rbac-stack"));
   }
 
   return copied;

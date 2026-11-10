@@ -9,5 +9,5 @@ export default {
   nodeEnv,
   appEnv,
   port: process.env.PORT || "8000",
-  sessionSecret: process.env.SESSION_SECRET || "change-me-in-production",
+  sessionSecret: process.env.SESSION_SECRET || "",
 };

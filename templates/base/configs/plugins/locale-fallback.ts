@@ -1,6 +1,7 @@
 import fs from "fs";
 import { NextFunction, Request, Response } from "express";
 import path from "path";
+import { rootPath } from "@lib/utils/path";
 
 type LocaleTree = Record<string, unknown>;
 
@@ -8,7 +9,7 @@ let catalog: LocaleTree | null = null;
 
 function loadEnglishCatalog(): LocaleTree {
   if (catalog) return catalog;
-  const dir = path.join(process.cwd(), "configs", "locales", "en");
+  const dir = rootPath("configs", "locales", "en");
   const merged: LocaleTree = {};
   if (!fs.existsSync(dir)) {
     catalog = merged;

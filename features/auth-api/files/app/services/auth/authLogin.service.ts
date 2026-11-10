@@ -1,4 +1,4 @@
-import { generateToken } from "@lib";
+import { generateToken, hashToken } from "@lib";
 import { PasswordType, UserStatus } from "@models/enums";
 import { Prisma } from "@db";
 import { Security, UnauthorizedError } from "ts-rails";
@@ -44,14 +44,20 @@ export class AuthLoginService extends ApplicationService {
     const accessToken = generateToken({ id: user.id }, "1h");
     const refreshToken = generateToken({ id: user.id }, "7d");
 
+    // Several devices may be signed in at once; only tokens past their 7-day life are dropped.
+    const expiredBefore = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await this.models.$transaction([
       this.models.password.deleteMany({
-        where: { userId: user.id, type: PasswordType.REFRESH_TOKEN },
+        where: {
+          userId: user.id,
+          type: PasswordType.REFRESH_TOKEN,
+          createdAt: { lt: expiredBefore },
+        },
       }),
       this.models.password.create({
         data: {
           userId: user.id,
-          password: refreshToken,
+          password: hashToken(refreshToken),
           type: PasswordType.REFRESH_TOKEN,
         },
       }),

@@ -56,7 +56,7 @@
   "postInstall": {
     "messages": [
       "Open: GET /admin (after login at /auth)",
-      "Seed user: admin@example.com / password123",
+      "Seed user: set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env, then db:seed",
       "RBAC: irwin add admin-rbac"
     ]
   }

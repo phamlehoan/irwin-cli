@@ -16,11 +16,12 @@ async function main() {
     return;
   }
 
-  const admin = await models.user.findFirst({
-    where: { email: "admin@example.com", deleted: false },
-  });
+  const adminEmail = (process.env.SEED_ADMIN_EMAIL || "").trim().toLowerCase();
+  const admin = adminEmail
+    ? await models.user.findFirst({ where: { email: adminEmail, deleted: false } })
+    : null;
   if (!admin) {
-    console.log("[seed-rbac] No admin@example.com — run db:seed first");
+    console.log("[seed-rbac] No seeded admin (set SEED_ADMIN_EMAIL, run db:seed first)");
     return;
   }
 

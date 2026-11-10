@@ -32,7 +32,7 @@
       "ops": [
         {
           "type": "append",
-          "content": "DATABASE_URL=file:./database/app.db\n"
+          "content": "DATABASE_URL=file:./database/app.db\n# Admin seeded by db:seed (no built-in credentials). SEED_ADMIN_PASSWORD is generated on install.\nSEED_ADMIN_EMAIL=\nSEED_ADMIN_PASSWORD=\n"
         }
       ]
     },
@@ -49,11 +49,18 @@
   ],
   "postInstall": {
     "install": true,
-    "scripts": ["db:generate", "db:push"],
+    "scripts": [
+      "db:generate",
+      "db:push"
+    ],
     "messages": [
       "Set DATABASE_URL in .env (default file:./database/app.db)",
       "Login user: run pnpm db:seed after irwin add auth (auth re-seeds after schema is final)",
       "Optional now (API-only / no auth yet): pnpm db:seed"
-    ]
+    ],
+    "generateSecrets": [
+      "SEED_ADMIN_PASSWORD"
+    ],
+    "createEnvFile": true
   }
 }

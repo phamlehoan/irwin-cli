@@ -1,6 +1,6 @@
 /**
  * Smoke E2E: irwin new → add database/session/auth → doctor → optional g scaffold
- * Run from irwin-cli after build. App is created under VIZ Framework/.tmp/e2e-smoke
+ * Run from irwin-cli after build. App is created under <monorepo>/.tmp/e2e-smoke
  * so the repo root stays clean (ts-rails resolved from npm).
  */
 import { execSync } from "node:child_process";
@@ -10,10 +10,10 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cliRoot = path.resolve(__dirname, "..");
-const vizRoot = path.resolve(cliRoot, "..");
+const monorepoRoot = path.resolve(cliRoot, "..");
 const cliBin = path.join(cliRoot, "dist", "cli.js");
 const appName = "e2e-smoke";
-const tmpRoot = path.join(vizRoot, ".tmp");
+const tmpRoot = path.join(monorepoRoot, ".tmp");
 const appDir = path.join(tmpRoot, appName);
 
 function run(cmd, opts = {}) {

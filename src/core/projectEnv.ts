@@ -1,9 +1,14 @@
 import fs from "fs";
 import path from "path";
 
-const ENV_FILES = [".env", ".env.local", ".env.development"];
+/**
+ * Same files and precedence as the generated app's runtime loader (`configs/loadDotenv.ts`):
+ * `.env` first, then `.env.local` overrides it. `.env.development` is NOT loaded at runtime,
+ * so it must not influence what the CLI decides (IRW-FIX-038).
+ */
+const ENV_FILES = [".env", ".env.local"];
 
-/** Parse KEY=VALUE lines from project env files (later files do not override earlier). */
+/** Parse KEY=VALUE lines from project env files (later files override earlier: `.env.local` > `.env`). */
 export function readProjectEnv(projectRoot: string): Record<string, string> {
   const out: Record<string, string> = {};
 

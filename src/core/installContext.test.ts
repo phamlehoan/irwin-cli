@@ -51,6 +51,29 @@ describe("getJobsInstallContext", () => {
     assert.equal(ctx.jobsQueueMode, "database");
   });
 
+  it("does not treat a commented-out initializeJobs() as wired (IRW-FIX-038)", () => {
+    const root = mkProject({
+      "configs/application.ts":
+        "// initializeJobs();\n/* setupJobWorkers() */\nexport const x = 1;\n",
+    });
+    assert.equal(getJobsInstallContext(root).jobsEnabled, false);
+  });
+
+  it(".env.local overrides .env; .env.development is ignored (IRW-FIX-038)", () => {
+    const root = mkProject({
+      ".env": "JOBS_USE_REDIS=false\n",
+      ".env.local": "JOBS_USE_REDIS=true\n",
+      ".env.development": "JOBS_USE_REDIS=false\n",
+      "configs/application.ts": "initializeJobs();\n",
+    });
+    assert.equal(getJobsInstallContext(root).jobsUseRedis, true);
+    const only = mkProject({
+      ".env.development": "JOBS_USE_REDIS=true\n",
+      "configs/application.ts": "initializeJobs();\n",
+    });
+    assert.equal(getJobsInstallContext(only).jobsUseRedis, false);
+  });
+
   it("detects redis mode from .env", () => {
     const root = mkProject({
       ".env": "JOBS_USE_REDIS=true\n",

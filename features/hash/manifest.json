@@ -1,0 +1,43 @@
+{
+  "id": "hash",
+  "version": "1.0.0",
+  "description": "bcrypt password hasher (single source of initializeHash, shared by session and auth-api)",
+  "requires": [],
+  "npm": {
+    "dependencies": {
+      "bcrypt": "^5.1.1"
+    },
+    "devDependencies": {
+      "@types/bcrypt": "^5.0.2"
+    }
+  },
+  "files": {
+    "from": "files"
+  },
+  "patches": [
+    {
+      "file": "configs/application.ts",
+      "ops": [
+        {
+          "type": "insertAfter",
+          "marker": "import { initializeCache, initializeLogger } from \"./initializers\";",
+          "content": "\nimport { initializeHash } from \"./initializers\";"
+        },
+        {
+          "type": "insertAfter",
+          "marker": "// @irwin:initializers",
+          "content": "\n    initializeHash();"
+        }
+      ]
+    },
+    {
+      "file": "configs/initializers/index.ts",
+      "ops": [
+        {
+          "type": "append",
+          "content": "export * from \"./hash\";\n"
+        }
+      ]
+    }
+  ]
+}

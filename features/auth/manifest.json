@@ -2,7 +2,10 @@
   "id": "auth",
   "version": "1.1.0",
   "description": "Login, register, profile, i18n (en/vi), locale switcher + header user menu",
-  "requires": ["database", "session"],
+  "requires": [
+    "database",
+    "session"
+  ],
   "npm": {
     "dependencies": {
       "class-validator": "^0.15.1",
@@ -115,7 +118,7 @@
       "ops": [
         {
           "type": "append",
-          "content": "\n# Email activation (irwin add mailer + SMTP or MAIL_SERVICE=test)\n# JWT_SECRET=change-me-jwt-secret\n# CLIENT_APP_URL=http://localhost:9000\n"
+          "content": "\n# Email activation (irwin add mailer + SMTP or MAIL_SERVICE=test)\n# JWT_SECRET=<long random value>\n# CLIENT_APP_URL=http://localhost:9000\n"
         }
       ]
     },
@@ -148,15 +151,22 @@
     }
   ],
   "postInstall": {
-    "scripts": ["db:generate", "db:push", "db:seed"],
+    "scripts": [
+      "db:generate",
+      "db:push",
+      "db:seed"
+    ],
     "messages": [
       "i18n (en/vi) is included — use EN / VI in the header; preference saved in cookie",
       "Header: Sign in / Register, or avatar menu (profile, change password, logout)",
       "GET /auth — login · GET /users/new — register",
       "GET /me — edit profile (login required)",
       "GET /auth/:email/edit — change password",
-      "Demo login (seeded automatically): admin@example.com / password123",
+      "Admin login: set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env, then db:seed",
       "If you ran db:seed before auth, run again: pnpm db:seed"
     ]
-  }
+  },
+  "stackSync": [
+    "auth"
+  ]
 }
